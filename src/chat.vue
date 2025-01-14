@@ -21,7 +21,7 @@ const state = reactive(new message())
 
 let messages : Ref<message[]> = ref([])
 
-const socket = io(`http://chat-api.oracle.aquabx.ovh:443}`);
+const socket = io(`https://chat-api.oracle.aquabx.ovh:443}`);
 
 socket.on('connect', function() {
     console.log('Connected');
