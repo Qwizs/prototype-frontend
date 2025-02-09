@@ -9,10 +9,19 @@ interface Info{
 }
 
 let infos : Ref<Info | undefined> = ref()
-
 </script>
 
 <template>
+   <NuxtLayout>
+    <NuxtPage />
+  </NuxtLayout>
+  <!--
   <Connection v-model="infos" v-if="infos == undefined"/>
   <Chat :infos="infos" v-else/>
+  -->
 </template>
+
+<style scoped>
+
+</style>
+
