@@ -1,142 +1,183 @@
 <template>
   <div>
     <main class="main-content">
-      <h1 class="page-title">Mes Qwizs</h1>
-      <div class="quiz-container">
-        <div class="quiz-card">
-          <div class="quiz-icon">
-            <img src="../assets/quiz-icon.png" alt="Quiz Icon" />
+      <section class="hero">
+        <div class="hero-content">
+          <img src="/assets/panda.png" alt="Panda" class="hero-image" />
+          <div class="hero-text">
+            <h1>
+              Du <span class="highlight">fun</span>, des <span class="highlight">questions</span>, et un max de <span class="highlight">challenges</span> !
+            </h1>
+            <p>Apprenez en vous amusant avec nos quiz interactifs.</p>
           </div>
-          <p>Premier_Qwiz</p>
-          <button class="play-button">▶</button>
         </div>
-        <button class="add-quiz-button">+</button>
-      </div>
+      </section>
+
+      <section class="challenge-section">
+        <div class="challenge-content">
+          <img src="/assets/ranking.jpeg" alt="Classement" class="challenge-image" />
+          <p class="challenge-text">Challengez-vous et grimpez au sommet du classement !</p>
+        </div>
+      </section>
+
+      <section class="qr-section">
+        <div class="qr-content">
+          <p class="qr-text">Rejoignez ou organisez un QWIZS !</p>
+          <p class="qr-subtext">Il suffit de scanner un QR code pour rejoindre une session.</p>
+        </div>
+        <div class="qr-wrapper">
+          <img src="/assets/result.png" alt="QR Code" class="qr-image" />
+        </div>
+      </section>
+
+      <section class="cta-section">
+        <button class="cta-button">Créez votre premier Qwizs !</button>
+      </section>
     </main>
+
+    <footer class="footer">
+      <p class="footer-text">QWIZS &copy; 2025</p>
+    </footer>
   </div>
 </template>
 
-<script setup>
-</script>
-
 <style>
 
-.navbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #fff;
-  padding: 10px 20px;
-  border-bottom: 1px solid #ddd;
-}
-
-.navbar .brand {
-  font-size: 1.5rem;
-  color: #C46FC8;
-  font-weight: bold;
-  text-decoration: none;
-}
-
-.navbar ul {
-  display: flex;
-  list-style: none;
+body {
   margin: 0;
-  padding: 0;
-}
-
-.navbar li {
-  margin: 0 10px;
-}
-
-.navbar a {
-  color: #000;
-  text-decoration: none;
-  font-size: 1rem;
-}
-
-.navbar a:hover {
-  color: #C46FC8;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-}
-
-.user-info .avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  margin-right: 10px;
+  font-family: 'Poppins', sans-serif;
+  background-color: #F9F9FB;
+  color: #333;
+  line-height: 1.5;
 }
 
 .main-content {
+  text-align: center;
+  padding: 0 20px;
+}
+
+.hero {
+  background-color: #F2EAFE;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.hero-image {
+  width: 100px;
+  margin-bottom: 20px;
+}
+
+.hero-text {
+  max-width: 700px;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #C46FC8;
+  margin-bottom: 15px;
+}
+
+.hero h1 .highlight {
+  color: #86218B;
+}
+
+.hero p {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.challenge-section {
+  margin: 50px 0;
+}
+
+.challenge-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.challenge-image {
+  width: 90%;
+  max-width: 600px;
+  margin-bottom: 20px;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.challenge-text {
+  font-size: 1.5rem;
+  color: #444;
+}
+
+.qr-section {
+  margin: 50px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.qr-content {
+  margin-bottom: 20px;
+}
+
+.qr-text {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.qr-subtext {
+  font-size: 1rem;
+  color: #777;
+}
+
+.qr-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 20px;
+}
+
+.qr-image {
+  width: auto; 
+  height: auto;
+ }
+
+.cta-section {
+  margin: 40px 0;
+}
+
+.cta-button {
+  background-color: #C46FC8;
+  color: #fff;
+  border: none;
+  padding: 15px 40px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.cta-button:hover {
+  background-color: #86218B;
+  transform: translateY(-3px);
+}
+
+.footer {
+  background-color: #333;
+  color: #fff;
   padding: 20px;
   text-align: center;
 }
 
-.page-title {
-  font-size: 2rem;
-  color: #C46FC8;
-  margin-bottom: 20px;
-}
-
-.quiz-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  position: relative;
-}
-
-.quiz-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: #f9f9f9;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  width: 200px;
-  height: 150px;
-}
-
-.quiz-icon img {
-  width: 50px;
-  height: 50px;
-}
-
-.play-button {
-  background: #4caf50;
-  color: white;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 5px;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.play-button:hover {
-  background: #45a049;
-}
-
-.add-quiz-button {
-  position: absolute;
-  right: -10px;
-  top: -10px;
-  background: #C46FC8;
-  color: white;
-  border: none;
-  font-size: 1.5rem;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  cursor: pointer;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.add-quiz-button:hover {
-  background: #C46FC8;
+.footer-text {
+  margin: 0;
+  font-size: 1rem;
 }
 </style>

@@ -9,7 +9,7 @@
         <ul class="nav-links">
           <li><NuxtLink to="/" class="nav-link">Home</NuxtLink></li>
           <li><NuxtLink to="/quizs" class="nav-link active">Mes QWIZS</NuxtLink></li>
-          <li><NuxtLink to="/themes" class="nav-link">Thèmes de quiz</NuxtLink></li>
+          <li><NuxtLink to="/" class="nav-link">Thèmes de quiz</NuxtLink></li>
         </ul>
 
         <div class="user-info" @click="toggleMenu">
