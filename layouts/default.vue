@@ -55,6 +55,7 @@ const logout = () => {
 </script>
 
 <style>
+
 body {
   background-color: #ffffff; 
   margin: 0;
@@ -71,17 +72,25 @@ body {
 
 .navbar {
   background-color: #ffffff;
-  padding: 30px 40px;
+  padding: 15px 20px;
   border-bottom: 1px solid #ddd;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
 }
 
 .navbar-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  width: 1200px;
-  height: 100%;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+  flex-wrap: wrap; 
 }
 
 .brand {
@@ -123,22 +132,23 @@ body {
   align-items: center;
   gap: 5px;
   cursor: pointer;
+  flex-shrink: 0;
 }
 .user-info .avatar {
-  width: 50px;
-  height: 50px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
 }
 
 .user-info .user-name {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: bold;
   color: #C46FC8;
 }
 
 .user-menu {
   position: absolute;
-  top: 55px; 
+  top: 50px; 
   right: 0;
   background-color: #ffffff;
   border-radius: 12px;
@@ -173,5 +183,44 @@ main {
   padding: 40px;
   min-height: 100vh; 
   box-sizing: border-box;
+}
+
+@media (max-width: 1024px) {
+  .navbar-container {
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 15px;
+  }
+
+  .nav-links {
+    gap: 15px;
+  }
+
+  .user-info {
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .navbar {
+    padding: 10px 15px;
+  }
+
+  .navbar-container {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .nav-links {
+    gap: 10px;
+  }
+
+  .user-info {
+    margin-top: 10px;
+  }
+
+  .user-info .user-name {
+    display: none; 
+  }
 }
 </style>
