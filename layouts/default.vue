@@ -187,8 +187,8 @@ main {
 
 @media (max-width: 1024px) {
   .navbar-container {
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
     padding: 10px 15px;
   }
 
@@ -197,7 +197,7 @@ main {
   }
 
   .user-info {
-    margin-top: 10px;
+    gap: 5px;
   }
 }
 
@@ -207,8 +207,9 @@ main {
   }
 
   .navbar-container {
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
+    justify-content: space-between;
   }
 
   .nav-links {
