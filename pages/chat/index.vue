@@ -1,3 +1,7 @@
+// 🛠️ Classe de test temporaire pour expérimenter le socket.
+// ⚠️ Ne sert à rien – utilisée uniquement pour tester les connexions socket.io.
+// TODO: À supprimer une fois les tests terminés.
+
 <script setup lang="ts">
 import { z } from 'zod'
 import { nextTick, ref } from 'vue'
@@ -22,10 +26,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     infos.value = { ...state.value };
     await nextTick();
     console.log('Submit:', infos.value);
-
-   
-    router.push(`/chat/${infos.value.room}?user=${infos.value.user}`)
-}
+    router.push(`/quizs/lobby/${infos.value.room}?user=${infos.value.user}`);
+    console.log("quiz room",infos.value.room, infos.value.user)}
 </script>
 
 <template>

@@ -1,3 +1,7 @@
+// 🛠️ Classe de test temporaire pour expérimenter le socket.
+// ⚠️ Ne sert à rien – utilisée uniquement pour tester les connexions socket.io.
+// TODO: À supprimer une fois les tests terminés.
+
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
 import { io } from 'socket.io-client'
@@ -20,6 +24,8 @@ onMounted(() => {
   socket.connect()
   if (user.value && room.value) {
     socket.emit('connectionRoom', { user: user.value, room: room.value })
+    socket.emit('userJoined', { user: user.value, room: room.value })
+
   }
 
   socket.on('events', (data) => {

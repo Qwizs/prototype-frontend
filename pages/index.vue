@@ -1,3 +1,33 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { z } from 'zod'
+import type { FormSubmitEvent } from '#ui/types'
+
+const router = useRouter()
+const showModal = ref(false) 
+
+const infos = ref<{ room?: string, user?: string }>({})
+
+const schema = z.object({
+  room: z.string().nonempty("Le code du quiz est requis"),
+  user: z.string().nonempty("Votre nom est requis"),
+})
+
+type Schema = z.output<typeof schema>
+
+const state = ref<Schema>({ room: '', user: '' })
+
+async function onSubmit(event: FormSubmitEvent<Schema>) { 
+    event.preventDefault()
+    infos.value = { ...state.value }
+    showModal.value = false 
+    // router.push(`/quizs/${infos.value.room}?user=${infos.value.user}`)
+    router.push(`/quizs/lobby/${infos.value.room}?user=${infos.value.user}`);
+    console.log("quiz room",infos.value.room, infos.value.user)
+}
+</script>
+
 <template>
   <div>
     <main class="main-content">
@@ -33,12 +63,40 @@
       <section class="cta-section">
         <button class="cta-button">Créez votre premier Qwizs !</button>
       </section>
+
+      <section class="cta-section">
+        <button class="cta-button" @click="showModal = true">Rejoindre un Quiz</button>
+      </section>
+    
+   <div v-if="showModal" class="modal-overlay">
+      <div class="modal">
+        <h2 class="modal-title"></h2>
+
+        <UForm :schema="schema" :state="state" class="space-y-4 w-full" @submit="onSubmit">
+          <UFormGroup label="Nom d'utilisateur" name="user">
+            <UInput v-model="state.user" placeholder="Votre nom..." class="modal-input"/>
+          </UFormGroup>
+
+          <UFormGroup label="Code du Quiz" name="room">
+            <UInput v-model="state.room" placeholder="Code du quiz..." class="modal-input"/>
+          </UFormGroup>
+
+          <div class="modal-actions">
+            <UButton type="submit" class="modal-button confirm">Rejoindre</UButton>
+            <UButton type="button" class="modal-button cancel" @click="showModal = false">Annuler</UButton>
+          </div>
+        </UForm>
+      </div>
+    </div>
+
     </main>
 
     <footer class="footer">
       <p class="footer-text">QWIZS &copy; 2025</p>
     </footer>
   </div>
+
+
 </template>
 
 <style>
@@ -179,5 +237,66 @@ body {
 .footer-text {
   margin: 0;
   font-size: 1rem;
+}
+
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.modal {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.modal-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 1rem;
+  margin-top: 5px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.modal-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.confirm {
+  background: #C46FC8;
+  color: white;
+}
+
+.cancel {
+  background: #ccc;
 }
 </style>
