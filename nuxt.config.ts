@@ -5,6 +5,11 @@ export default defineNuxtConfig({
   devServer: {
     port: 4200,
   },
+  runtimeConfig: {
+    public: {
+      apiBase: 'http://localhost:3000/',
+    }
+  },
   modules: ['@nuxt/ui'],
   pages: true,
   css: ['~/assets/main.css'],
