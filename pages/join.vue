@@ -5,9 +5,12 @@ import type { FormSubmitEvent } from '#ui/types'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 
+const quizCode = computed(() => route.query.code as string | undefined);
 const infos = ref<{ room?: string, user?: string }>({})
 
+console.log(quizCode.value);
 const schema = z.object({
   room: z.string().nonempty("Must be set"),
   user: z.string().nonempty("Must be set"),
@@ -15,17 +18,16 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>
 
-const state = ref<Schema>({ room: '', user: '' })
+const state = ref<Schema>({ room: quizCode.value || '', user: '' })
 
 async function onSubmit(event: FormSubmitEvent<Schema>) {
     event.preventDefault(); 
     infos.value = { ...state.value };
     await nextTick();
-    console.log('Submit:', infos.value);
-
-   
-    router.push(`/chat/${infos.value.room}?user=${infos.value.user}`)
+    router.push(`/quiz/${infos.value.room}/waiting?user=${infos.value.user}`)
 }
+
+
 </script>
 
 <template>
@@ -37,7 +39,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         <UInput v-model="state.user" />
       </UFormGroup>
 
-      <UFormGroup label="Code de la Room" name="room">
+      <UFormGroup label="Code de la Room" name="room" v-if="!quizCode">
         <UInput v-model="state.room" />
       </UFormGroup>
 

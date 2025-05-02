@@ -14,7 +14,7 @@
         />
 
         <div class="quiz-container">
-          <div class="quiz-card" v-for="quiz in quizzes" :key="quiz.id">
+          <div class="quiz-card" v-for="quiz in quizzes" :key="quiz.id" @click="launchQuiz(quiz.id)">
             <img :src="quiz.icon" alt="Quiz Icon" class="quiz-icon-full" />
             <p class="quiz-title">{{ quiz.title }}</p>
           </div>
@@ -25,8 +25,13 @@
 </template>
 
 
-<script setup>
+<script setup lang="ts">
 import { reactive } from 'vue';
+import { useRouter } from 'vue-router';
+import { io } from 'socket.io-client';
+
+const router = useRouter();
+const socket = io('http://localhost:4500');
 
 const quizzes = reactive([
   { id: 1, title: "Premier Qwiz", icon: "/assets/quiz-icon.png" },
@@ -39,6 +44,14 @@ const addQuiz = () => {
     id: newId,
     title: `Nouveau Qwiz ${newId}`,
     icon: "/assets/quiz-icon.png",
+  });
+};
+
+const launchQuiz = (quizId: number) => {
+  socket.emit('generateQuizCode', quizId);
+
+  socket.on('quizCodeGenerated', (code) => {
+    router.push(`/quiz/${code}/waiting/?user=admin`);
   });
 };
 </script>
