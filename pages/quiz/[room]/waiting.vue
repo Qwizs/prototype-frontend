@@ -21,8 +21,10 @@ onMounted(() => {
   });
 
   socket.on('userJoined', (username) => {
+  if (!participants.value.includes(username)) {
     participants.value.push(username);
-  });
+  }
+});
 
   socket.on('startQuiz', () => {
     // Rediriger vers la page du quiz
@@ -57,7 +59,9 @@ const generateQRCode = () => {
     <ul>
       <li v-for="participant in participants" :key="participant">{{ participant }}</li>
     </ul>
-    <button @click="startQuiz" v-if="isAdmin">Start Quiz</button>
+    <button @click="startQuiz" v-if="isAdmin && participants.length >= 2">
+  Start Quiz
+</button>
     <div>
       <h2>Scan to Join</h2>
       <img :src="qrCodeUrl" alt="QR Code" />
