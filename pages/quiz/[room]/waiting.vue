@@ -23,10 +23,10 @@ onMounted(() => {
   });
 
   socket.on('userJoined', (username) => {
-    if (!participants.value.includes(username)) {
-      participants.value.push(username);
-    }
-  });
+  if (!participants.value.includes(username)) {
+    participants.value.push(username);
+  }
+});
 
   socket.on('startQuiz', () => {
     router.push(`/quiz/${quizCode.value}/game?user=${user.value}`);
@@ -74,7 +74,7 @@ const generateQRCode = () => {
       </div>
     </div>
 
-    <div class="admin-actions" v-if="isAdmin">
+    <div class="admin-actions" v-if="isAdmin && participants.length >= 2">
       <button @click="startQuiz" class="start-btn">🚀 Démarrer le quiz</button>
     </div>
   </div>
