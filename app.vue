@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Ref } from 'vue';
-import Chat from './src/chat.vue';
-import Connection from './src/connection.vue';
+// import Chat from './src/chat.vue';
+// import Connection from './src/connection.vue';
 
 interface Info{
   user:string

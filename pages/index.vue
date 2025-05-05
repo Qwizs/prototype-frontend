@@ -26,6 +26,15 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
     router.push(`/quizs/lobby/${infos.value.room}?user=${infos.value.user}`);
     console.log("quiz room",infos.value.room, infos.value.user)
 }
+
+const handleCTA = () => {
+  const username = localStorage.getItem('username');
+  if (username) {
+    router.push('/quizs'); // Redirige vers la page quizs si connecté
+  } else {
+    router.push('/connexion'); // Sinon, vers la page de connexion
+  }
+};
 </script>
 
 <template>
@@ -61,8 +70,12 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       </section>
 
       <section class="cta-section">
-        <button class="cta-button">Créez votre premier Qwizs !</button>
+        <button class="cta-button" @click="handleCTA">
+          Créez votre premier Qwizs !
+        </button>
+
       </section>
+
 
       <section class="cta-section">
         <button class="cta-button" @click="showModal = true">Rejoindre un Quiz</button>

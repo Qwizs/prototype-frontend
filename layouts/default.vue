@@ -12,15 +12,21 @@
           <li><NuxtLink to="/" class="nav-link">Thèmes de quiz</NuxtLink></li>
         </ul>
 
-        <div class="user-info" @click="toggleMenu">
+        <div v-if="!username">
+          <button @click="goToConnexion">Se connecter</button>
+        </div>
+
+        <div v-if="username" class="user-info" @click="toggleMenu">
           <img src="/assets/user-avatar.png" alt="Avatar" class="avatar" />
-          <span class="user-name">John Doe</span>
+          <span class="user-name">{{username}}</span>
 
           <div class="user-menu" v-show="isMenuVisible">
+
             <NuxtLink to="/profile" class="menu-item">Voir le profil</NuxtLink>
             <NuxtLink to="/profile" class="menu-item" @click="editProfile">Modifier le profil</NuxtLink>
             <NuxtLink to="/profile" class="menu-item" @click="changePassword">Changer le mot de passe</NuxtLink>
             <NuxtLink to="/profile" class="menu-item" @click="logout">Se déconnecter</NuxtLink>
+            
           </div>
         </div>
       </nav>
@@ -33,9 +39,29 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { useRouter } from 'vue-router'
 
 const isMenuVisible = ref(false);
+const username = ref(null)
+const router = useRouter()
+
+const updateUsername = () => {
+  const storedUsername = localStorage.getItem('username')
+  username.value = storedUsername || null
+}
+
+onMounted(() => {
+  updateUsername()
+
+  router.afterEach(() => {
+    updateUsername()
+  })
+})
+
+const goToConnexion = () => {
+  router.push('/connexion')
+}
 
 const toggleMenu = () => {
   isMenuVisible.value = !isMenuVisible.value;
@@ -51,6 +77,12 @@ const changePassword = () => {
 
 const logout = () => {
   console.log('Déconnexion');
+  // Supprimer les données utilisateur du stockage
+  localStorage.removeItem('username') // ou sessionStorage.removeItem
+  username.value = 'Utilisateur inconnu'
+  // Rediriger l'utilisateur vers la page de connexion ou la page d'accueil
+  // Par exemple, avec Vue Router (si tu l'utilises)
+  router.push('/connexion') // rediriger vers une page de connexion
 };
 </script>
 

@@ -3,11 +3,11 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
   devServer: {
-    port: 4200,
+    port: 3000,
   },
   runtimeConfig: {
     public: {
-      apiBase: 'http://localhost:3000/',
+      apiBase: 'http://localhost:4500/',
     }
   },
   modules: ['@nuxt/ui'],
