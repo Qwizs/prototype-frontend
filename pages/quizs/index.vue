@@ -6,24 +6,40 @@
       </div>
 
       <div class="quiz-wrapper">
+      <div class="quiz-header">
         <img
           src="/assets/add_quiz.png"
           alt="Add Quiz"
-          class="add-quiz-image"
+          class="button-quiz-image"
           @click="openModal"
         />
+        <img
+          src="/assets/rm_quiz.png"
+          alt="Remove Quiz"
+          class="button-quiz-image"
+          @click="openModal2"
+        />
+        <img
+          src="/assets/remove_all.png"
+          alt="Remove All Quiz"
+          class="remove-quiz-image"
+          @click="openModal3"
+        />
+      </div>
 
-        <div class="quiz-container">
-          <div class="quiz-card" 
-            v-for="quiz in quizzes" 
-            :key="quiz.idQuiz"
-            @click="goToQuiz(quiz.idQuiz)">
+      <div class="quiz-container">
+        <div
+          class="quiz-card"
+          v-for="quiz in quizzes"
+          :key="quiz.idQuiz"
+          @click="goToQuiz(quiz.idQuiz)"
+        >
           <img src="/assets/quiz-icon.png" alt="Quiz Icon" class="quiz-icon-full" />
           <p class="quiz-title">{{ quiz.name }}</p>
-          <!-- <p class="quiz-category">{{ quiz.name }}</p> -->
-        </div>
         </div>
       </div>
+    </div>
+
     </main>
 
     <div v-if="showModal" class="modal-overlay">
@@ -46,8 +62,38 @@
         </div>
       </div>
     </div>
+
+    <div v-if="showModal2" class="modal-overlay">
+      <div class="modal">
+        <select v-model="selectedQuizId" class="quiz-select">
+          <option disabled value="">Choisissez un quiz</option>
+          <option
+            v-for="quiz in quizzes"
+            :key="quiz.idQuiz"
+            :value="quiz.idQuiz"
+          >
+            {{ quiz.name }}
+          </option>
+        </select>
+        <div class="modal-actions">
+          <button @click="removeQuiz" class="btn-primary">Supprimer</button>
+          <button @click="closeModal2" class="btn-secondary">Annuler</button>
+        </div>
+      </div>
+    </div>    
   </div>
+
+  <div v-if="showModal3" class="modal-overlay">
+      <div class="modal">
+        <h2>Êtes-vous sûr(e) de supprimer tous vos quiz ?</h2>
+        <div class="modal-actions">
+          <button @click="removeAll" class="btn-primary">Oui</button>
+          <button @click="closeModal3" class="btn-secondary">Non</button>
+        </div>
+      </div>
+    </div>  
 </template>
+
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
@@ -58,8 +104,11 @@ const router = useRouter();
 const quizzes = ref([]); // devient un ref pour la mise à jour dynamique
 const categories = ref([]);
 const selectedCategoryId = ref('');
+const selectedQuizId = ref('');
 
 const showModal = ref(false);
+const showModal2 = ref(false);
+const showModal3 = ref(false);
 const newQuizName = ref("");
 
 const storedUsername = localStorage.getItem('username');
@@ -142,8 +191,26 @@ const openModal = () => {
   newQuizName.value = ""; 
 };
 
+const openModal2 = () => {
+  showModal2.value = true;
+};
+
+const openModal3 = () => {
+  showModal3.value = true;
+};
+
 const closeModal = () => {
   showModal.value = false;
+  newQuizName.value = ""; 
+};
+
+const closeModal2 = () => {
+  showModal2.value = false;
+};
+
+const closeModal3 = () => {
+  showModal3.value = false;
+  quizzes.value = [];
 };
 
 const addQuiz = async () => {
@@ -212,6 +279,87 @@ const addQuiz = async () => {
   }
 };
 
+const removeQuiz = async () => {
+
+  if (selectedQuizId.value === "") return;
+
+  try {
+    console.log("ID du quiz à supprimer:", selectedQuizId.value); // Vérification
+    const { data: admin, error: errorA } = await useFetch(`/administrators/findId/${storedUsername}/${storedPassword}`, {
+    baseURL: useRuntimeConfig().public.apiBase,
+    method: 'GET',
+    });
+
+    if (errorA.value || !admin.value) {
+      console.error("Erreur lors de la récupération de l'administrateur");
+      return;
+    }
+    const adminId = admin.value;
+    console.log("adminId", adminId)
+
+    const { error: deleteErr } = await useFetch(`/quiz/${selectedQuizId.value}`, {
+      baseURL: useRuntimeConfig().public.apiBase,
+      method: 'DELETE'
+    });
+
+    if (deleteErr.value) {
+      console.error('Erreur lors de la suppression du quiz :', deleteErr.value);
+      return;
+    }
+
+    const { data: data2, error: adminError } = await useFetch(`/administrator-quiz/${adminId}/${selectedQuizId.value}`, {
+      baseURL: useRuntimeConfig().public.apiBase,
+      method: 'DELETE'
+    });  
+
+    console.log(data2)
+    
+    if (adminError.value) {
+      console.error('Erreur lors de la suppression du quiz :', error.value);
+      console.error('Détails de l\'erreur:', error.value.response || error.value);
+      return;
+    }
+
+    quizzes.value = quizzes.value.filter(quiz => quiz.idQuiz !== selectedQuizId.value);
+
+    closeModal2();
+    selectedQuizId.value = "";
+  } catch (err) {
+    console.error("Erreur inattendue :", err);
+  }
+};
+
+const removeAll = async () => {
+
+  try {
+    const { data: admin, error: errorA } = await useFetch(`/administrators/findId/${storedUsername}/${storedPassword}`, {
+    baseURL: useRuntimeConfig().public.apiBase,
+    method: 'GET',
+    });
+
+    if (errorA.value || !admin.value) {
+      console.error("Erreur lors de la récupération de l'administrateur");
+      return;
+    }
+    const adminId = admin.value;
+    console.log("adminId", adminId)
+
+    const { error: deleteErr } = await useFetch(`/administrator-quiz/1/1/${adminId}`, {
+      baseURL: useRuntimeConfig().public.apiBase,
+      method: 'DELETE'
+    });
+
+    if (deleteErr.value) {
+      console.error('Erreur lors de la suppression des quiz :', deleteErr.value);
+      return;
+    }
+
+    quizzes.value = [];
+    closeModal3();
+  } catch (err) {
+    console.error("Erreur inattendue :", err);
+  }
+};
 
 const goToQuiz = (quizId) => {
   router.push(`/quizs/${quizId}`); 
@@ -228,11 +376,14 @@ const goToQuiz = (quizId) => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5); /* Fond sombre et opaque */
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 999; /* Assure que l'overlay soit au-dessus du contenu */
+  backdrop-filter: blur(5px); /* Applique un flou sur l'arrière-plan */
 }
+
 
 .modal {
   background: #fff;
@@ -250,6 +401,13 @@ const goToQuiz = (quizId) => {
   font-family: 'Poppins', sans-serif;
 }
 
+.main-content {
+  margin-top: 80px; 
+  padding-top: 100px;
+  text-align: center;
+  background-color: #ffffff;
+}
+
 .quiz-input {
   width: 100%;
   padding: 10px;
@@ -264,6 +422,8 @@ const goToQuiz = (quizId) => {
   display: flex;
   justify-content: space-between;
 }
+
+
 
 .btn-primary {
   background: #C46FC8;
@@ -289,13 +449,6 @@ const goToQuiz = (quizId) => {
 
 .btn-secondary:hover {
   background: #bbb;
-}
-
-.main-content {
-  margin-top: 80px; 
-  padding-top: 100px;
-  text-align: center;
-  background-color: #ffffff;
 }
 
 .title-container {
@@ -376,15 +529,39 @@ const goToQuiz = (quizId) => {
   margin: 10px 0;
 }
 
-.add-quiz-image {
+.quiz-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+}
+
+.button-quiz-image {
   width: 60px;
   height: 60px;
   cursor: pointer;
+  margin: 1%;
   transition: transform 0.2s ease;
+  z-index: 1;
+  position: relative; /* plus "absolute" */
 }
 
-.add-quiz-image:hover {
+.button-quiz-image:hover {
   transform: scale(1.1);
 }
+
+.remove-quiz-image {
+  width: auto;
+  height: 60px;
+  cursor: pointer;
+  margin: 1%;
+  transition: transform 0.2s ease;
+  z-index: 1;
+  position: relative; /* plus "absolute" */
+}
+
+.remove-quiz-image:hover {
+  transform: scale(1.1);
+}
+
 </style>
 
