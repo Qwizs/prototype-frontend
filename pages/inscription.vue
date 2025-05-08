@@ -51,6 +51,7 @@
         console.log('Password :', password.value)
         console.log('Data :', data.value)
         localStorage.setItem('username', username.value) // ou sessionStorage
+        localStorage.setItem('password', password.value) // ou sessionStorage
         router.push('/') // redirige vers la page d'accueil
     }
     }

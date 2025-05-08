@@ -7,14 +7,17 @@
         </NuxtLink>
 
         <ul class="nav-links">
-          <li><NuxtLink to="/" class="nav-link">Home</NuxtLink></li>
-          <li><NuxtLink to="/quizs" class="nav-link active">Mes QWIZS</NuxtLink></li>
-          <li><NuxtLink to="/" class="nav-link">Thèmes de quiz</NuxtLink></li>
+          <li><NuxtLink to="/" class="nav-link" active-class="active">Home</NuxtLink></li>
+          <div v-if="username">
+            <li><NuxtLink to="/quizs" class="nav-link" active-class="active">Mes QWIZS</NuxtLink></li>
+          </div>
+          <li><NuxtLink to="/themes" class="nav-link" active-class="active">Thèmes de quiz</NuxtLink></li>
         </ul>
 
         <div v-if="!username">
-          <button @click="goToConnexion">Se connecter</button>
+          <button class="purple-button" @click="goToConnexion">Se connecter</button>
         </div>
+
 
         <div v-if="username" class="user-info" @click="toggleMenu">
           <img src="/assets/user-avatar.png" alt="Avatar" class="avatar" />
@@ -44,6 +47,7 @@ import { useRouter } from 'vue-router'
 
 const isMenuVisible = ref(false);
 const username = ref(null)
+const password = ref(null)
 const router = useRouter()
 
 const updateUsername = () => {
@@ -51,8 +55,14 @@ const updateUsername = () => {
   username.value = storedUsername || null
 }
 
+const updatePassword = () => {
+  const storedPassword = localStorage.getItem('password')
+  password.value = storedPassword || null
+}
+
 onMounted(() => {
   updateUsername()
+  updatePassword()
 
   router.afterEach(() => {
     updateUsername()
@@ -79,6 +89,7 @@ const logout = () => {
   console.log('Déconnexion');
   // Supprimer les données utilisateur du stockage
   localStorage.removeItem('username') // ou sessionStorage.removeItem
+  localStorage.removeItem('password') // ou sessionStorage.removeItem
   username.value = 'Utilisateur inconnu'
   // Rediriger l'utilisateur vers la page de connexion ou la page d'accueil
   // Par exemple, avec Vue Router (si tu l'utilises)
@@ -93,6 +104,23 @@ body {
   margin: 0;
   font-family: Arial, sans-serif;
 }
+
+.purple-button {
+  background-color: #C46FC8;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  font-weight: bold;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.purple-button:hover {
+  background-color: #a84da9;
+}
+
 
 .main-content {
   padding: 40px;

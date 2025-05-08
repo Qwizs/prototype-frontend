@@ -79,7 +79,8 @@ const quizId = computed(() => route.params.id);
 
 const quizzes = ref([
   { id: 1, title: "Premier Qwiz", questions: [] },
-  { id: 2, title: "Deuxième Qwiz", questions: [] }
+  { id: 2, title: "Deuxième Qwiz", questions: [] },
+  { id: 3, title: "Deuxième Qwiz", questions: [] }
 ]);
 
 const quiz = computed(() => quizzes.value.find(q => q.id == quizId.value));
