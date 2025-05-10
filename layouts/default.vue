@@ -11,7 +11,7 @@
           <div v-if="username">
             <li><NuxtLink to="/quizs" class="nav-link" active-class="active">Mes QWIZS</NuxtLink></li>
           </div>
-          <li><NuxtLink to="/themes" class="nav-link" active-class="active">Thèmes de quiz</NuxtLink></li>
+          <li><NuxtLink to="/quiz" class="nav-link" active-class="active">Thèmes de quiz</NuxtLink></li>
         </ul>
 
         <div v-if="!username">

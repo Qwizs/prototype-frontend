@@ -14,6 +14,12 @@
           @click="openModal"
         />
         <img
+          src="/assets/modify.png"
+          alt="Modify Quiz"
+          class="button-quiz-image"
+          @click="openModal5"
+        />
+        <img
           src="/assets/rm_quiz.png"
           alt="Remove Quiz"
           class="button-quiz-image"
@@ -25,6 +31,12 @@
           class="remove-quiz-image"
           @click="openModal3"
         />
+        <img
+          src="/assets/add_category.png"
+          alt="Add Category"
+          class="add-catgory-image"
+          @click="openModal4"
+        />
       </div>
 
       <div class="quiz-container">
@@ -35,6 +47,7 @@
           @click="goToQuiz(quiz.idQuiz)"
         >
           <img src="/assets/quiz-icon.png" alt="Quiz Icon" class="quiz-icon-full" />
+          <p class="quiz-category">Catégorie : {{ getCategoryName(quiz.idCategory) }}</p> <!-- Ajouté -->
           <p class="quiz-title">{{ quiz.name }}</p>
         </div>
       </div>
@@ -81,7 +94,7 @@
         </div>
       </div>
     </div>    
-  </div>
+  
 
   <div v-if="showModal3" class="modal-overlay">
       <div class="modal">
@@ -91,7 +104,50 @@
           <button @click="closeModal3" class="btn-secondary">Non</button>
         </div>
       </div>
+  </div>  
+
+  <div v-if="showModal4" class="modal-overlay">
+      <div class="modal">
+        <h2>Choisissez un nom de catégorie</h2>
+        <input v-model="newCategoryName" type="text" placeholder="Nom de la catégorie" class="quiz-input" />
+        <div class="modal-actions">
+          <button @click="addCategory" class="btn-primary">Créer</button>
+          <button @click="closeModal4" class="btn-secondary">Annuler</button>
+        </div>
+      </div>
     </div>  
+
+    <div v-if="showModal5" class="modal-overlay">
+      <div class="modal">
+        <h2>Choisissez un quiz à modifier</h2>
+        <select v-model="selectedQuizId" class="quiz-select">
+          <option disabled value="">Choisissez un quiz</option>
+          <option
+            v-for="quiz in quizzes"
+            :key="quiz.idQuiz"
+            :value="quiz.idQuiz"
+          >
+            {{ quiz.name }}
+          </option>
+        </select>
+        <select v-model="selectedCategoryId" class="quiz-select">
+          <option disabled value="">Choisissez une catégorie</option>
+          <option
+            v-for="category in categories"
+            :key="category.idCategory"
+            :value="category.idCategory"
+          >
+            {{ category.name }}
+          </option>
+        </select>       
+        <input v-model="newQuizName" type="text" placeholder="Nouveau nom du quiz" class="quiz-input" />
+        <div class="modal-actions">
+          <button @click="modifyQuiz" class="btn-primary">Modifier</button>
+          <button @click="closeModal5" class="btn-secondary">Annuler</button>
+        </div>
+      </div>
+    </div> 
+  </div>
 </template>
 
 
@@ -109,7 +165,10 @@ const selectedQuizId = ref('');
 const showModal = ref(false);
 const showModal2 = ref(false);
 const showModal3 = ref(false);
+const showModal4 = ref(false);
+const showModal5 = ref(false);
 const newQuizName = ref("");
+const newCategoryName = ref("");
 
 const storedUsername = localStorage.getItem('username');
 const storedPassword = localStorage.getItem('password');
@@ -165,6 +224,15 @@ quizzes.value = quizList;
 
 };
 
+function getCategoryName(idCategory) {
+  for (let i = 0; i < categories.value.length; i++) {
+    if (categories.value[i].idCategory === idCategory) {
+      return categories.value[i].name;
+    }
+  }
+  return 'inconnue';
+}
+
 const loadCategories = async () => {
   const { data, error } = await useFetch(`/categories/all`, {
     baseURL: useRuntimeConfig().public.apiBase,
@@ -178,6 +246,7 @@ const loadCategories = async () => {
 
   categories.value = data.value;
   console.log("Liste de catégories:", data.value);
+  console.log("Cat :", categories.value[0].name);
 };
 
 
@@ -199,6 +268,16 @@ const openModal3 = () => {
   showModal3.value = true;
 };
 
+const openModal4 = () => {
+  showModal4.value = true;
+  newCategoryName.value = ""; 
+};
+
+const openModal5 = () => {
+  showModal5.value = true;
+  newQuizName.value = ""; 
+};
+
 const closeModal = () => {
   showModal.value = false;
   newQuizName.value = ""; 
@@ -210,7 +289,16 @@ const closeModal2 = () => {
 
 const closeModal3 = () => {
   showModal3.value = false;
-  quizzes.value = [];
+};
+
+const closeModal4 = () => {
+  showModal4.value = false;
+  newCategoryName.value = ""; 
+};
+
+const closeModal5 = () => {
+  showModal5.value = false;
+  newQuizName.value = ""; 
 };
 
 const addQuiz = async () => {
@@ -271,9 +359,9 @@ const addQuiz = async () => {
       return;
     }
 
-    closeModal();
     newQuizName.value = "";
     selectedCategoryId.value = "";
+    closeModal();
   } catch (err) {
     console.error("Erreur inattendue :", err);
   }
@@ -322,8 +410,8 @@ const removeQuiz = async () => {
 
     quizzes.value = quizzes.value.filter(quiz => quiz.idQuiz !== selectedQuizId.value);
 
-    closeModal2();
     selectedQuizId.value = "";
+    closeModal2();
   } catch (err) {
     console.error("Erreur inattendue :", err);
   }
@@ -356,6 +444,79 @@ const removeAll = async () => {
 
     quizzes.value = [];
     closeModal3();
+  } catch (err) {
+    console.error("Erreur inattendue :", err);
+  }
+};
+
+const addCategory = async () => {
+  if (newCategoryName.value.trim() === "") return;
+
+  try {
+    const { data: cat, error: errorCat } = await useFetch(`/categories`, {
+    baseURL: useRuntimeConfig().public.apiBase,
+    method: 'POST',
+    body: {
+        name: newCategoryName.value
+      },
+    });
+
+    if (errorCat.value) {
+      console.error('Erreur lors de la création de la catégorie :', errorCat.value);
+      return;
+    }
+
+    console.log("cat :", cat)
+    
+
+    loadCategories();
+    newCategoryName.value = "";
+    closeModal4();
+  } catch (err) {
+    console.error("Erreur inattendue :", err);
+  }
+};
+
+const modifyQuiz = async () => {
+  if (!selectedQuizId.value?.toString().trim()) return;
+
+  try {
+    console.log("selectedQuizId", selectedQuizId.value);
+
+    const body = {};
+
+    if (selectedCategoryId.value) {
+      body.idCategory = selectedCategoryId.value;
+    }
+
+    if (newQuizName.value?.trim()) {
+      body.name = newQuizName.value.trim();
+    }
+
+    if (Object.keys(body).length === 0) {
+      console.warn("Aucune donnée à modifier.");
+      return;
+    }
+
+    const { data, error } = await useFetch(`/quiz/${selectedQuizId.value}`, {
+      baseURL: useRuntimeConfig().public.apiBase,
+      method: 'PUT',
+      body,
+    });
+
+    if (error.value) {
+      console.error('Erreur lors de la modification du quiz :', error.value);
+      return;
+    }
+
+    const updatedQuizId = data.value;
+    console.log("updatedQuizId", updatedQuizId); 
+
+    newQuizName.value = "";
+    selectedCategoryId.value = "";
+    loadQuizzes();
+    loadCategories();
+    closeModal5();
   } catch (err) {
     console.error("Erreur inattendue :", err);
   }
@@ -562,6 +723,54 @@ const goToQuiz = (quizId) => {
 .remove-quiz-image:hover {
   transform: scale(1.1);
 }
+
+.add-catgory-image:hover {
+  transform: scale(1.1);
+}
+
+.add-catgory-image {
+  width: auto;
+  height: 60px;
+  cursor: pointer;
+  margin: 1%;
+  transition: transform 0.2s ease;
+  z-index: 1;
+  position: relative; /* plus "absolute" */
+}
+
+.add-catgory-image:hover {
+  transform: scale(1.1);
+}
+
+.quiz-category {
+  font-size: 0.75rem; /* plus petit que le titre */
+  color: #888;
+  margin-top: 10px;
+  margin-bottom: 2px;
+  font-family: 'Poppins', sans-serif;
+}
+
+.quiz-select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  border: 2px solid #ccc;
+  font-size: 1rem;
+  color: #333;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill='%236c63ff' d='M5 8l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.quiz-select option {
+  background-color: white;
+  color: #333;
+}
+
+
 
 </style>
 
