@@ -484,6 +484,7 @@ const modifyQuiz = async () => {
     console.log("selectedQuizId", selectedQuizId.value);
 
     const body = {};
+    body.id
 
     if (selectedCategoryId.value) {
       body.idCategory = selectedCategoryId.value;
@@ -685,7 +686,7 @@ const goToQuiz = (quizId) => {
 .quiz-title {
   font-size: 1.2rem;
   font-weight: bold;
-  color: #6c546c;
+  color: #C46FC8;
   text-align: center;
   margin: 10px 0;
 }
