@@ -455,6 +455,10 @@ const startQuiz = () => {
   console.log("Quiz started with room code:", roomCode);
 };
 
+const goToQuestion = (idQuestion) => {
+  router.push(`/question/${idQuestion}`); 
+};
+
 </script>
 
 <style>
