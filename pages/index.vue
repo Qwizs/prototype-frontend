@@ -42,7 +42,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       </section>
 
       <section class="cta-section">
-        <button class="cta-button" @click="showModal = true">Rejoindre un Quiz</button>
+        <NuxtLink to="/join" class="cta-button">Rejoindre un Quiz</NuxtLink>
       </section>
 
       <section class="challenge-section">
@@ -66,25 +66,6 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         <button class="cta-button">Créez votre premier Qwizs !</button>
       </section>
 
-      <div v-if="showModal" class="modal-overlay" role="dialog" aria-modal="true">
-        <div class="modal">
-          <h2 class="modal-title">Rejoindre un Quiz</h2>
-          <UForm :schema="schema" :state="state" class="space-y-4 w-full" @submit="onSubmit">
-            <UFormGroup name="user" class="modal-label">
-              <UInput v-model="state.user" placeholder="Nom du Joueur" class="modal-input" />
-            </UFormGroup>
-
-            <UFormGroup name="room" class="modal-label">
-              <UInput v-model="state.room" placeholder="Code du Quiz" class="modal-input" />
-            </UFormGroup>
-
-            <div class="modal-actions">
-              <UButton type="submit" class="modal-button confirm">Rejoindre</UButton>
-              <UButton type="button" class="modal-button cancel" @click="showModal = false">Annuler</UButton>
-            </div>
-          </UForm>
-        </div>
-      </div>
     </main>
 
     <footer class="footer">
@@ -213,101 +194,4 @@ body {
   text-align: center;
 }
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.4);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal {
-  background: white;
-  padding: 30px 25px;
-  border-radius: 20px;
-  width: 90%;
-  max-width: 400px;
-  text-align: center;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-}
-
-.modal-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: #C46FC8;
-  margin-bottom: 20px;
-}
-
-.modal input {
-  width: 100%;
-  padding: 12px 15px;
-  border: 1px solid #ccc;
-  border-radius: 12px;
-  font-size: 1rem;
-  color: #333 !important;
-  background-color: transparent !important;
-  transition: border-color 0.3s ease;
-}
-
-.modal-input:focus {
-  border-color: #C46FC8;
-  outline: none;
-}
-
-.modal-input::placeholder {
-  color: #999;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 25px;
-}
-
-.modal-button {
-  padding: 12px 24px;
-  font-size: 1rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  flex: 1;
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-
-
-.modal-button.confirm {
-  background-color: #C46FC8;
-  color: white;
-}
-
-
-.modal-button.confirm:hover {
-  background-color: #86218B;
-}
-
-.modal-button.cancel {
-  background-color: #f2f2f2;
-  color: #555;
-}
-
-.modal-button.cancel:hover {
-  background-color: #e0e0e0;
-}
-
-.modal-label label {
-  color: #333 !important ;
-  font-weight: 600;
-  font-size: 0.95rem;
-}
 </style>
