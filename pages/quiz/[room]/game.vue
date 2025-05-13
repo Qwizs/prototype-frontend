@@ -9,20 +9,25 @@ const router = useRouter();
 const room = computed(() => route.params.room as string);
 const user = computed(() => route.query.user as string | undefined);
 
-const socket = io('http://localhost:4500', {
-  transports: ['websocket', 'polling'],
-});
+const maxPoints = 1000;
+const maxDelay = 10000;
+
+let startTime: number;
+let answerTime: number | null = null;
 
 const question = ref<{ question: string; options: string[]; correctOption: string } | null>(null);
 const selectedOption = ref<string | null>(null);
 const score = ref(0);
+const currentQuestionScore = ref<number | null>(null); 
+const perQuestionScores = ref<number[]>([]);
+
 const allUsersResponded = ref(false);
 const finalScores = ref<{ [user: string]: number }>({});
 const answerRevealed = ref(false);
 const correctOption = ref<string | null>(null);
-
 const questionIndex = ref(0);
 const progress = ref(100);
+
 let progressInterval: ReturnType<typeof setInterval> | null = null;
 
 const resetProgress = () => {
@@ -34,6 +39,7 @@ const resetProgress = () => {
     } else {
       clearInterval(progressInterval!);
       progressInterval = null;
+
       socket.emit('submitAnswer', {
         user: user.value,
         room: room.value,
@@ -42,6 +48,10 @@ const resetProgress = () => {
     }
   }, 100);
 };
+
+const socket = io('http://localhost:4500', {
+  transports: ['websocket', 'polling'],
+});
 
 onMounted(() => {
   socket.connect();
@@ -52,10 +62,13 @@ onMounted(() => {
 
   socket.on('newQuestion', (data) => {
     question.value = data;
+    startTime = Date.now();
+    answerTime = null;
     selectedOption.value = null;
     allUsersResponded.value = false;
     answerRevealed.value = false;
     correctOption.value = null;
+    currentQuestionScore.value = null;
     questionIndex.value += 1;
     resetProgress();
   });
@@ -72,12 +85,21 @@ onMounted(() => {
     answerRevealed.value = true;
     correctOption.value = data.correctOption;
 
+    let earnedScore = 0;
+
     if (
-      selectedOption.value?.trim().toLowerCase() ===
-      data.correctOption.trim().toLowerCase()
+      selectedOption.value &&
+      selectedOption.value.trim().toLowerCase() === data.correctOption.trim().toLowerCase()
     ) {
-      score.value += 1;
+      const delay = (answerTime ?? Date.now()) - startTime;
+      const clampedDelay = Math.min(delay, maxDelay);
+      const speedRatio = 1 - clampedDelay / maxDelay;
+      earnedScore = Math.floor(maxPoints * speedRatio);
+      score.value += earnedScore;
     }
+
+    perQuestionScores.value.push(earnedScore);
+    currentQuestionScore.value = earnedScore; 
   });
 
   socket.on('quizEnded', (scores) => {
@@ -88,10 +110,9 @@ onMounted(() => {
         user: user.value,
         score: score.value.toString(),
         scores: encodeURIComponent(JSON.stringify(scores)),
+        history: encodeURIComponent(JSON.stringify(perQuestionScores.value)), // 👈 ici
       },
     });
-
-
   });
 
   socket.on('exception', (data) => {
@@ -111,14 +132,19 @@ onBeforeUnmount(() => {
 const selectOption = (option: string) => {
   if (!selectedOption.value && !answerRevealed.value) {
     selectedOption.value = option;
-    socket.emit('submitAnswer', { user: user.value, room: room.value, answer: option });
+    answerTime = Date.now();
+
+    socket.emit('submitAnswer', {
+      user: user.value,
+      room: room.value,
+      answer: option,
+    });
   }
 };
 </script>
 
 <template>
   <UContainer class="min-h-screen flex flex-col justify-start p-4 gap-4 bg-white text-black">
-
     <transition name="fade-slide" mode="out-in">
       <div v-if="question" :key="questionIndex" class="question-card">
         <div class="progress-bar-wrapper" v-if="!allUsersResponded">
@@ -132,7 +158,7 @@ const selectOption = (option: string) => {
             v-for="option in question.options"
             :key="option"
             @click="!selectedOption && !answerRevealed && selectOption(option)"
-            :class="[ 
+            :class="[
               'option-button',
               { 'selected': selectedOption === option },
               { 'correct': answerRevealed && option === correctOption },
@@ -143,11 +169,15 @@ const selectOption = (option: string) => {
             {{ option }}
           </li>
         </ul>
+
+        <p v-if="answerRevealed && currentQuestionScore !== null" class="mt-4 text-sm text-gray-600">
+          Tu as gagné {{ currentQuestionScore }} point{{ currentQuestionScore !== 1 ? 's' : '' }} sur cette question.
+        </p>
       </div>
     </transition>
-
   </UContainer>
 </template>
+
 
 <style scoped>
 .question-card {

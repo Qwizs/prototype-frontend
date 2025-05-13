@@ -54,20 +54,11 @@ const logout = () => {
 };
 </script>
 
-<style>
-
+<style scoped>
 body {
-  background-color: #ffffff; 
+  background-color: #ffffff;
   margin: 0;
   font-family: Arial, sans-serif;
-}
-
-.main-content {
-  padding: 40px;
-  text-align: center;
-  background-color: #ffffff; 
-  min-height: calc(100vh - 80px); 
-  box-sizing: border-box;
 }
 
 .navbar {
@@ -76,11 +67,12 @@ body {
   border-bottom: 1px solid #ddd;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   width: 100%;
-  
-  /* top: 0;
+
+  /* ✅ NAVBAR FIXE */
+  position: fixed;
+  top: 0;
   left: 0;
   z-index: 1000;
-  position: fixed; */
 }
 
 .navbar-container {
@@ -91,7 +83,7 @@ body {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 20px;
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
 }
 
 .brand {
@@ -120,7 +112,7 @@ body {
 }
 
 .nav-links .nav-link.active {
-  color: #C46FC8; 
+  color: #C46FC8;
 }
 
 .nav-links .nav-link:hover {
@@ -135,6 +127,7 @@ body {
   cursor: pointer;
   flex-shrink: 0;
 }
+
 .user-info .avatar {
   width: 40px;
   height: 40px;
@@ -149,7 +142,7 @@ body {
 
 .user-menu {
   position: absolute;
-  top: 50px; 
+  top: 50px;
   right: 0;
   background-color: #ffffff;
   border-radius: 12px;
@@ -180,9 +173,10 @@ body {
 }
 
 main {
-  background-color: #ffffff; 
+  background-color: #ffffff;
   padding: 40px;
-  min-height: 100vh; 
+  padding-top: 100px; 
+  min-height: 100vh;
   box-sizing: border-box;
 }
 
@@ -222,7 +216,7 @@ main {
   }
 
   .user-info .user-name {
-    display: none; 
+    display: none;
   }
 }
 </style>
