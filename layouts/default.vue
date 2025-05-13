@@ -11,7 +11,7 @@
           <div v-if="username">
             <li><NuxtLink to="/quizs" class="nav-link" active-class="active">Mes QWIZS</NuxtLink></li>
           </div>
-          <li><NuxtLink to="/quiz" class="nav-link" active-class="active">Thèmes de quiz</NuxtLink></li>
+          <li><NuxtLink to="/all-quizs" class="nav-link" active-class="active">Thèmes de quiz</NuxtLink></li>
         </ul>
 
         <div v-if="!username">
@@ -25,9 +25,7 @@
 
           <div class="user-menu" v-show="isMenuVisible">
 
-            <NuxtLink to="/profile" class="menu-item">Voir le profil</NuxtLink>
-            <NuxtLink to="/profile" class="menu-item" @click="editProfile">Modifier le profil</NuxtLink>
-            <NuxtLink to="/profile" class="menu-item" @click="changePassword">Changer le mot de passe</NuxtLink>
+            <NuxtLink to="/profile" class="menu-item">Mon profile</NuxtLink>
             <NuxtLink to="/profile" class="menu-item" @click="logout">Se déconnecter</NuxtLink>
             
           </div>
@@ -70,6 +68,8 @@ onMounted(() => {
 })
 
 const goToConnexion = () => {
+  console.log("here");
+  
   router.push('/connexion')
 }
 

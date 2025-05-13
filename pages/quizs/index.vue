@@ -9,25 +9,25 @@
       <div class="quiz-header">
         <img
           src="/assets/add_quiz.png"
-          alt="Add Quiz"
+          alt="Add Question"
           class="button-quiz-image"
           @click="openModal"
         />
         <img
           src="/assets/modify.png"
-          alt="Modify Quiz"
+          alt="Modify Question"
           class="button-quiz-image"
           @click="openModal5"
         />
         <img
           src="/assets/rm_quiz.png"
-          alt="Remove Quiz"
+          alt="Remove Question"
           class="button-quiz-image"
           @click="openModal2"
         />
         <img
           src="/assets/remove_all.png"
-          alt="Remove All Quiz"
+          alt="Remove All Question"
           class="remove-quiz-image"
           @click="openModal3"
         />
@@ -44,11 +44,16 @@
           class="quiz-card"
           v-for="quiz in quizzes"
           :key="quiz.idQuiz"
-          @click="goToQuiz(quiz.idQuiz)"
+          
         >
           <img src="/assets/quiz-icon.png" alt="Quiz Icon" class="quiz-icon-full" />
           <p class="quiz-category">Catégorie : {{ getCategoryName(quiz.idCategory) }}</p> <!-- Ajouté -->
           <p class="quiz-title">{{ quiz.name }}</p>
+          <div class="button-container">
+            <button @click="launchQuiz(quiz.id)" class="btn start-btn">Start</button>
+            <button @click="goToQuiz(quiz.idQuiz)" class="btn edit-btn">Modifier</button>          
+          </div>
+          
         </div>
       </div>
     </div>
@@ -154,6 +159,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import {io} from 'socket.io-client'
 
 const router = useRouter();
 
@@ -170,8 +176,8 @@ const showModal5 = ref(false);
 const newQuizName = ref("");
 const newCategoryName = ref("");
 
-const storedUsername = localStorage.getItem('username');
-const storedPassword = localStorage.getItem('password');
+const storedUsername = localStorage.getItem('username') || "";
+const storedPassword = localStorage.getItem('password') || "";
 
 // Fonction pour charger les quiz depuis l'API
 const loadQuizzes = async () => {
@@ -527,10 +533,56 @@ const goToQuiz = (quizId) => {
   router.push(`/quizs/${quizId}`); 
 };
 
+const socket = io('http://localhost:4500/')
+
+const launchQuiz = (quizId) => {
+  console.log("here");
+  
+  socket.emit('generateQuizCode', quizId)
+  console.log("here 2");
+  
+  socket.on('quizCodeGenerated', (code)=> {
+    router.push(`/quiz/${code}/waiting?user=admin`);
+  })
+};
+
 
 </script>
 
 <style>
+
+.button-container {
+  display: flex;
+  gap: 1rem; /* espace entre les boutons */
+}
+
+.btn {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 0.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.start-btn {
+  background-color: #28a745; /* Vert */
+}
+
+.start-btn:hover {
+  background-color: #218838;
+}
+
+.edit-btn {
+  background-color: #C46FC8; /* Orange */
+}
+
+.edit-btn:hover {
+  background-color: #86218B;
+}
+
 
 .modal-overlay {
   position: fixed;
@@ -564,7 +616,6 @@ const goToQuiz = (quizId) => {
 }
 
 .main-content {
-  margin-top: 80px; 
   padding-top: 100px;
   text-align: center;
   background-color: #ffffff;
@@ -627,12 +678,12 @@ const goToQuiz = (quizId) => {
 
 .quiz-wrapper {
   position: relative; 
-  border: 2px solid #f7f7f7; 
-  border-radius: 15px; 
-  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
   background: #ffffff; 
   margin: 0 auto;
-  max-width: 800px; 
 }
 
 .add-quiz-image {
@@ -665,16 +716,8 @@ const goToQuiz = (quizId) => {
   justify-content: space-between;
   background: #ffffff !important;
   border-radius: 15px;
-  box-shadow: none; 
-  width: 220px;
-  height: 220px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  box-shadow: none;
   overflow: hidden;
-}
-
-.quiz-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
 }
 
 .quiz-icon-full {
@@ -693,8 +736,7 @@ const goToQuiz = (quizId) => {
 
 .quiz-header {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 20px;
+  justify-content: center;
 }
 
 .button-quiz-image {

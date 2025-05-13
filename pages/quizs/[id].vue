@@ -449,11 +449,7 @@ const modifyQuestion = async () => {
   }
 };
 
-const startQuiz = () => {
-  const roomCode = Math.random().toString(36).substr(2, 6).toUpperCase(); 
-  router.push(`/quizs/lobby/${roomCode}?user=admin`);
-  console.log("Quiz started with room code:", roomCode);
-};
+
 
 const goToQuestion = (idQuestion) => {
   router.push(`/question/${idQuestion}`); 

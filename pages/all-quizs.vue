@@ -15,6 +15,9 @@
           <img src="/assets/quiz-icon.png" alt="Quiz Icon" class="quiz-icon-full" />
           <p class="quiz-category">Catégorie : {{ getCategoryName(quiz.idCategory) }}</p>
           <p class="quiz-title">{{ quiz.name }}</p>
+          <div class="button-container">
+            <button @click="launchQuiz(quiz.id)" class="btn start-btn">Start</button>     
+          </div>
         </div>
       </div>
     </main> <!-- doit être fermé ici -->
@@ -26,6 +29,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import {io} from 'socket.io-client'
 
 const router = useRouter();
 
@@ -102,13 +106,50 @@ onMounted(() => {
 });
 
 const goToQuiz = (quizId) => {
-  router.push(`/quizs/${quizId}`); 
+  router.push(`/display-questions/${quizId}`); 
+};
+
+const socket = io('http://localhost:4500/')
+
+const launchQuiz = (quizId) => {
+  console.log("here");
+  
+  socket.emit('generateQuizCode', quizId)
+  console.log("here 2");
+  
+  socket.on('quizCodeGenerated', (code)=> {
+    router.push(`/quiz/${code}/waiting?user=admin`);
+  })
 };
 
 
 </script>
 
 <style>
+
+.button-container {
+  display: flex;
+  gap: 1rem; /* espace entre les boutons */
+}
+
+.btn {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 0.4rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: white;
+  transition: background-color 0.2s ease;
+}
+
+.start-btn {
+  background-color: #28a745; /* Vert */
+}
+
+.start-btn:hover {
+  background-color: #218838;
+}
 
 .modal-overlay {
   position: fixed;
@@ -128,7 +169,6 @@ const goToQuiz = (quizId) => {
 .modal {
   background: #fff;
   padding: 20px;
-  border-radius: 12px;
   text-align: center;
   width: 400px;
 }
@@ -142,7 +182,6 @@ const goToQuiz = (quizId) => {
 }
 
 .main-content {
-  margin-top: 80px; 
   padding-top: 100px;
   text-align: center;
   background-color: #ffffff;
@@ -220,8 +259,6 @@ const goToQuiz = (quizId) => {
   background: #ffffff !important;
   border-radius: 15px;
   box-shadow: none; 
-  width: 220px;
-  height: 220px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   overflow: hidden;
 }
