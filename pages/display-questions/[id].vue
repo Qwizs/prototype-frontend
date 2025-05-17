@@ -104,7 +104,7 @@
   };
 
   const goToQuestion = (idQuestion) => {
-    router.push(`/question/${idQuestion}`); 
+    router.push(`/display-answers/${idQuestion}`); 
   };
   
   </script>

@@ -47,6 +47,7 @@
           <option :value="true">Bonne réponse</option>
           <option :value="false">Mauvaise réponse</option>
         </select>
+        <h2>Position de la réponse</h2>
         <input type="number" v-model="selectedOrder" min="1" placeholder="1"/>  
         <div class="modal-actions">
           <button @click="addAnswer" class="btn-primary">Créer</button>
@@ -232,7 +233,13 @@ const loadAnswers = async () => {
 };
 
 const addAnswer = async () => {
-  if (newAnswer.value.trim() === "") return;
+  if (
+  newAnswer.value.trim() === "" ||
+  selectedRightOrFalse.value === "" ||
+  selectedOrder.value === "" ||
+  isNaN(Number(selectedOrder.value))
+) return;
+
 
   try {
     const { data, error } = await useFetch('/answers', {
@@ -288,7 +295,7 @@ const removeAnswer = async () => {
 if (selectedAnswerId.value === "") return;
 
 try {
-
+  console.log("selectedAnswerId.value  :", selectedAnswerId.value);
   const { error: error2 } = await useFetch(`/answer-question/${questionId.value}/${selectedAnswerId.value}`, {
     baseURL: useRuntimeConfig().public.apiBase,
     method: 'DELETE'
