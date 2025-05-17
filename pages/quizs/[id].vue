@@ -32,11 +32,20 @@
         <div class="question-container">
           <div
             class="question-card"
-            v-for="question in questionsList"
+            v-for="(question, index) in questionsList"
             :key="question.idQuestion"
             @click="goToQuestion(question.idQuestion)"
           >
-            <p class="question-font">{{ question.description }}</p>
+            <div class="question-line">
+              <div class="question-left">
+                <span class="question-number">{{ getQuestionOrder(quizId, question.idQuestion) }}</span>
+                <span class="question-font">{{ question.description }}</span>
+              </div>
+              <div class="question-right">
+                <span class="question-time">{{ question.duration }} seconde(s)</span>
+                <span class="question-score">{{ question.score }} point(s)</span>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -132,6 +141,7 @@ const route = useRoute();
 const router = useRouter();
 const quizId = computed(() => route.params.id);
 const questionsList = ref([]);
+const quizQuestionList = ref([]);
 const quizName = ref("");
 const newQuestion = ref("");
 const selectedType = ref("");
@@ -155,6 +165,7 @@ const showModal4 = ref(false);
 onMounted(() => {
   loadQuiz();
   loadQuestions();
+  loadQuizQuestions();
   
 });
 
@@ -204,6 +215,41 @@ const closeModal3 = () => {
   selectedScore.value = "";
   selectedDuration.value = "";
   selectedOrder.value = ""; 
+};
+
+function getQuestionOrder(idQuiz, idQuestion) {
+  console.log("idQuiz :", idQuiz);
+  console.log("idQuestion :", idQuestion);
+  for (let i = 0; i < quizQuestionList.value.length; i++) {
+    console.log("quizQuestionList.value[i].idQuiz :", quizQuestionList.value[i].idQuiz);
+    console.log("quizQuestionList.value[i].idQuestion :", quizQuestionList.value[i].idQuestion);
+    console.log("quizQuestionList.value[i].order :", quizQuestionList.value[i].order);
+    if ( String(quizQuestionList.value[i].idQuiz) === String(idQuiz) && String(quizQuestionList.value[i].idQuestion) === String(idQuestion)){
+      return quizQuestionList.value[i].order;
+    }
+  }
+  return 'Not order';
+}
+
+const loadQuizQuestions = async () => {
+
+try {
+  const { data, error } = await useFetch(`/quiz-question/all`, {
+    baseURL: useRuntimeConfig().public.apiBase,
+    method: 'GET',
+  });
+
+  if (error.value || !data.value) {
+    console.error("Erreur lors de la récupération de order");
+    return;
+  }
+
+  quizQuestionList.value = data.value;
+  console.log("quizQuestionList :", quizQuestionList.value);
+
+} catch (err) {
+  console.error("Erreur inattendue :", err);
+}
 };
 
 const loadQuestions = async () => {
@@ -320,6 +366,7 @@ const addQuestion = async () => {
     selectedScore.value = "";
     selectedDuration.value = "";
     selectedOrder.value = "";   
+    loadQuizQuestions();
     closeModal();  
     
   } catch (err) {
@@ -428,6 +475,7 @@ const modifyQuestion = async () => {
       selectedScore.value = "";
       selectedDuration.value = "";
       loadQuestions();
+      loadQuizQuestions()
       closeModal3();  
     }
 
@@ -451,6 +499,7 @@ const modifyQuestion = async () => {
     selectedDuration.value = "";
     selectedOrder.value = "";   
     loadQuestions();
+    loadQuizQuestions()
     closeModal3();  
     
   } catch (err) {
@@ -467,6 +516,55 @@ const goToQuestion = (idQuestion) => {
 </script>
 
 <style>
+
+.question-time {
+  font-size: 14px;
+  color: #666;
+}
+
+.question-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.question-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.question-right {
+  display: flex;
+  align-items: center;
+  gap: 12px; /* espace entre secondes et score */
+}
+
+.question-number {
+  background-color: #C46FC8;
+  color: white;
+  border-radius: 12px;
+  padding: 4px 10px;
+  font-weight: bold;
+  font-size: 14px;
+  line-height: 1;
+  text-align: center;
+}
+
+.question-score {
+  font-size: 14px;
+  font-weight: bold;
+  color: #28a745;
+}
+
+.question-font {
+  color: #C46FC8;
+  font-weight: bold;
+  font-size: 16px;
+  line-height: 1.2;
+  margin: 0; /* important si tu gardes un <p> */
+  display: inline-block;
+}
 
 .main-content {
   margin-top: 80px; 
@@ -546,13 +644,6 @@ const goToQuestion = (idQuestion) => {
   background: #ffffff;
   margin: 40px auto; /* Augmentez la marge supérieure ici */
   max-width: 800px;
-}
-
-.question-font {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #C46FC8;
-  margin-bottom: 15px;
 }
 
 .question-title {
