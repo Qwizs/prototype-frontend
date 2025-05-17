@@ -13,6 +13,7 @@
           @click="goToQuiz(quiz.idQuiz)"
         >
           <img src="/assets/quiz-icon.png" alt="Quiz Icon" class="quiz-icon-full" />
+          <p class="quiz-category">Auteur : {{ getAuthorUsername(quiz.idQuiz) }}</p>
           <p class="quiz-category">Catégorie : {{ getCategoryName(quiz.idCategory) }}</p>
           <p class="quiz-title">{{ quiz.name }}</p>
           <div class="button-container">
@@ -35,6 +36,45 @@ const router = useRouter();
 
 const quizzes = ref([]); // devient un ref pour la mise à jour dynamique
 const categories = ref([]);
+const administratorQuizLinks = ref([]);
+const administrators = ref([]);
+
+
+function getAuthorUsername(idQuiz) {
+  const link = administratorQuizLinks.value.find(link => link.idQuiz === idQuiz);
+  if (!link) return "inconnu";
+
+  const admin = administrators.value.find(a => a.idAdministrator === link.idAdministrator);
+  return admin ? admin.username : "inconnu";
+}
+
+
+const loadAdministratorQuizLinks = async () => {
+  const { data, error } = await useFetch(`/administrator-quiz/all`, {
+    baseURL: useRuntimeConfig().public.apiBase,
+    method: 'GET',
+  });
+
+  if (!error.value && data.value) {
+    administratorQuizLinks.value = data.value;
+  } else {
+    console.error("Erreur lors du chargement des liens administrator-quiz");
+  }
+};
+
+const loadAdministrators = async () => {
+  const { data, error } = await useFetch(`/administrators/all`, {
+    baseURL: useRuntimeConfig().public.apiBase,
+    method: 'GET',
+  });
+
+  if (!error.value && data.value) {
+    administrators.value = data.value;
+  } else {
+    console.error("Erreur lors du chargement des administrateurs");
+  }
+};
+
 
 // Fonction pour charger les quiz depuis l'API
 const loadQuizzes = async () => {
@@ -103,6 +143,8 @@ const loadCategories = async () => {
 onMounted(() => {
   loadQuizzes();
   loadCategories();
+  loadAdministratorQuizLinks();
+  loadAdministrators();
 });
 
 const goToQuiz = (quizId) => {
