@@ -69,7 +69,7 @@ const onSubmit = async () => {
       });
       
       localStorage.setItem("username", response.username);
-      localStorage.setItem("idAmin", response.idAmdinistrator);
+      localStorage.setItem("idAdmin", response.data.idAdministrator);
       router.push("/");
     } catch (error) {
       console.error("Erreur lors de la creation du compte :", error);

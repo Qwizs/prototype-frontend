@@ -7,8 +7,8 @@
         </router-link>
 
         <ul class="nav-links">
-          <li><router-link to="/quizs" class="nav-link" active-class="active">Catalogue</router-link></li>
-          <li><router-link to="/join" class="nav-link" active-class="active">Rejoindre</router-link></li>
+          <li><router-link to="/quizs" class="nav-link">Catalogue</router-link></li>
+          <li><router-link to="/join" class="nav-link" >Rejoindre un qwiz</router-link></li>
           
           <div v-if="username">
             <li><router-link to="/my-quizs" class="nav-link" active-class="active">Mes qwizs</router-link></li>
@@ -49,7 +49,14 @@ const isMenuVisible = ref(false);
 const router = useRouter()
 
 
-const username = ref(localStorage.getItem('username') || "");
+const username = ref("");
+
+onMounted(() => {
+  username.value = localStorage.getItem('username') || "";
+  window.addEventListener("storage", () => {
+    username.value = localStorage.getItem('username') || "";
+  });
+});
 
 const menuRef = ref(null)
 const userInfoRef = ref(null)
@@ -65,7 +72,7 @@ const toggleMenu = () => {
 const logout = () => {
   localStorage.removeItem('username')
   localStorage.removeItem('idAdmin')
-  username.value = 'Utilisateur inconnu'
+  username.value = "";
   router.push('/connexion')
 };
 
@@ -158,13 +165,20 @@ body {
 
 .nav-links .nav-link {
   text-decoration: none;
-  color: #000;
-  font-size: 1.2rem;
-  font-weight: 600;
+  color: #4A4A4A;
+  font-size: 1.3rem;
+  font-family: 'Gabarito', sans-serif;
+  font-weight: 700;
+  transition: color 0.3s ease;
+  letter-spacing: 0.5px;
+}
+
+.nav-links .nav-link:hover {
+  color: #C46FC8;
 }
 
 .nav-links .nav-link.active {
-  color: #C46FC8; 
+  color: #C46FC8;
 }
 
 .nav-links .nav-link:hover {

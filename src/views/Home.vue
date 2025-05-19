@@ -27,7 +27,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
 const handleCTA = () => {
   const username = localStorage.getItem('username');
   if (username) {
-    router.push('/quizs'); // Redirige vers la page quizs si connecté
+    router.push('/my-quizs'); // Redirige vers la page quizs si connecté
   } else {
     router.push('/connexion'); // Sinon, vers la page de connexion
   }
@@ -53,7 +53,7 @@ const handleQuiz = () => {
 
       <section class="challenge-section">
         <div class="challenge-content">
-          <p class="challenge-text">Rejoignez ou organisez un QWIZS !</p>
+          <p class="challenge-text">Rejoignez ou organisez un QWIZ !</p>
           <p class="challenge-subtext">Il suffit de scanner un QR code pour rejoindre une session.</p>
         </div>
         <img src="/assets/ranking.jpeg" alt="QR Code" class="challenge-image" />
@@ -71,9 +71,9 @@ const handleQuiz = () => {
 
       <section class="cta-section">
         <button class="cta-button" @click="handleCTA">
-          Créez un Quiz
+          Créer un Qwiz
         </button>
-        <button class="cta-button" @click="handleQuiz">Rejoindre un Quiz</button>
+        <button class="cta-button" @click="handleQuiz">Rejoindre un Qwiz</button>
       </section>
   
 

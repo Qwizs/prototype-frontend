@@ -21,7 +21,7 @@
       <div class="questions-header">
         <h2>Questions</h2>
         <img
-          src="/assets/add_qwiz.png"
+          src="/assets/add_question.png"
           alt="Add Quiz"
           class="add-quiz-btn"
           @click="openCreateQuestionModal"
@@ -345,24 +345,35 @@ label {
   }
 
   & .add-quiz-btn {
-    width: 3rem;
-    aspect-ratio: 1/1;
-    cursor: pointer;
-    margin: 1%;
-    transition: transform 0.2s ease;
-    z-index: 1;
-    position: relative;
+      width: 15rem;
+      height: 3rem;
+      cursor: pointer;
+      object-fit: contain;
+      transition: transform 0.2s ease, filter 0.2s ease;
+      filter: drop-shadow(0px 2px 6px rgba(0, 0, 0, 0.2));
 
     &:hover {
-      transform: scale(1.1);
+    transform: scale(1.1);
+    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.2));
     }
   }
+}
+
+.questions-header h2 {
+  font-size: 2.5rem;
+  font-family: 'Nerko One', cursive;
+  color: #c46fc8;
+  margin: 0;
+  letter-spacing: 1px;
 }
 
 .questions-container {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+.questions-header .add-quiz-btn {
+  margin-left: 6rem; /* ou plus si besoin */
 }
 
 .question-card {

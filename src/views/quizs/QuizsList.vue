@@ -5,7 +5,7 @@
         <h1>Mes Qwizs</h1>
         <div class="actions">
           <img src="/assets/add_category.png" alt="" @click="isCategoryModalOpen = true" />
-          <img src="/assets/add_qwiz.png" alt="" @click="isQuizModalOpen = true" />
+          <img src="/assets/add_quiz.png" alt="" @click="isQuizModalOpen = true" />
         </div>
       </div>
 

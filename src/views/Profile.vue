@@ -39,12 +39,12 @@ onMounted(async () => {
 })
 
 const loadAdmin = async () => {
-  const idAmin = localStorage.getItem('idAdmin') || "";
-  admin.value.idAdministrator = idAmin;
+  const idAdmin = localStorage.getItem('idAdmin') || "";
+  admin.value.idAdministrator = idAdmin;
   admin.value.username = localStorage.getItem('username') || "";
   
   try {
-    const response = await axios.get(`/administrators/${idAmin}`);
+    const response = await axios.get(`/administrators/${idAdmin}`);
     admin.value = response.data;
   } catch (error) {
     console.error("Erreur lors de la récupération de la liste de quiz", error);
