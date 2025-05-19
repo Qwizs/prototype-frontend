@@ -109,4 +109,33 @@ import Navbar from './layouts/Navbar.vue';
   cursor: pointer;
 }
 
+label {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 0.5rem;
+}
+.input {
+  width: 100%;
+  padding: 0.75rem;
+  font-size: 1rem;
+  border: 0.1rem solid #ccc;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  color: #000000;
+  outline: none;
+  font-family: "Gabarito";
+
+  &:hover,
+  &:active,
+  &:focus {
+    border-color: #c46fc8;
+  }
+}
+
+.errorMessage {
+    color: red;
+    font-size: .9rem;
+  }
+
 </style>

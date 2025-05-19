@@ -15,6 +15,7 @@
         <div
           class="quiz-card"
           v-for="quiz in quizzes"
+          v-if="quizzes.length > 0"
           :key="quiz.idQuiz"
         >
           <img src="/assets/quiz-icon.png" alt="Quiz Icon" class="quiz-icon-full" @click="goToQuiz(quiz.idQuiz)"/>
@@ -27,6 +28,8 @@
           </div>
           
         </div>
+
+        <p v-if="quizzes.length === 0">Aucun QWIZS</p>
         
      
       </div>

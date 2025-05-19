@@ -1,77 +1,76 @@
 <template>
+  <div class="modal-overlay">
+    <div class="modal delete-quiz-modal">
+      <h2>Supprimer une Question</h2>
+
+      <section class="new-question-content">
+
+        <p>Confirmez-vous la suppression de la question : <strong>{{ currentQuestion.description }}</strong></p>
+      </section>
+      
+      <div class="modal-actions">
+        <button @click="emit('close')" class="btn-secondary">Annuler</button>
+        <button @click="submitForm" class="btn-primary delete">Supprimer</button>
+      </div>
+    </div>
+  </div>
 </template>
 
-<script setup>
-import { ref, watch } from "vue";
-import axios from "axios";
-const removeQuestion = async () => {
-  if (selectedQuestionId.value === "") return;
+<script setup lang="ts">
+import { ref, watch, toRefs, onMounted } from "vue";
+import axios from "@/axios";
 
-  try {
-    const { error: error2 } = await useFetch(
-      `/quiz-question/${quizId.value}/${selectedQuestionId.value}`,
-      {
-        baseURL: useRuntimeConfig().public.apiBase,
-        method: "DELETE",
-      }
-    );
+interface Question {
+  idQuestion: number;
+  description: string;
+  type: string;
+  duration: number;
+  score: number;
+}
 
-    if (error2.value) {
-      console.error(
-        "Erreur lors de la suppression de la question :",
-        error2.value
-      );
-      console.error(
-        "Détails de l'erreur:",
-        error2.value.response || error2.value
-      );
+const props = defineProps<{
+  data: {
+      currentQuestion: Question;
+  },
+  quizId: number;
+}>();
+
+const emit = defineEmits(["close", "refresh"]);
+
+const { data, quizId } = toRefs(props);
+const currentQuestion = ref(data.value.currentQuestion);
+
+const submitForm = async () => {
+    try {
+      const response2 = await axios.delete(`/questions/${currentQuestion.value.idQuestion}`);
+      emit("refresh");
+      emit("close");
+    } catch (error) {
+      console.error("Erreur lors de la création du qwiz :", error);
       return;
     }
-
-    const { error: deleteErr } = await useFetch(
-      `/questions/${selectedQuestionId.value}`,
-      {
-        baseURL: useRuntimeConfig().public.apiBase,
-        method: "DELETE",
-      }
-    );
-
-    if (deleteErr.value) {
-      console.error(
-        "Erreur lors de la suppression de la question :",
-        deleteErr.value
-      );
-      return;
-    }
-
-    const { error: deleteErr2 } = await useFetch(
-      `/answer-question/1/1/${selectedQuestionId.value}`,
-      {
-        baseURL: useRuntimeConfig().public.apiBase,
-        method: "DELETE",
-      }
-    );
-
-    if (deleteErr2.value) {
-      console.error(
-        "Erreur lors de la suppression des réponses :",
-        deleteErr.value
-      );
-      return;
-    }
-
-    questionsList.value = questionsList.value.filter(
-      (question) => question.idQuestion !== selectedQuestionId.value
-    );
-
-    selectedQuestionId.value = "";
-    closeModal2();
-  } catch (err) {
-    console.error("Erreur inattendue :", err);
-  }
 };
 </script>
 
 <style scoped>
+.delete-quiz-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  
+  & p{
+    display: flex;
+    font-size: 1.2rem;
+    gap: .5rem;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+    & strong{
+      font-size: 1.5rem;
+    }
+  }
+}
+
 
 </style>

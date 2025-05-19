@@ -1,30 +1,19 @@
 <template>
   <main class="main-content">
     <h1>Modifier mon Qwiz</h1>
-    <section class="infos-quiz">
-      <label for="name"
-        >Nom<input
-          name="name"
-          type="text"
-          class="input"
-          :placeholder="quizName"
-      /></label>
-      <label for="category"
-        >Catégorie<input
-          name="category"
-          type="text"
-          class="input"
-          :placeholder="getCategoryName(currentQuiz.idCategory)"
-      /></label>
-    </section>
     <div class="questions-wrapper">
       <div class="questions-header">
-        <h2>Questions</h2>
         <img
-          src="/assets/add_qwiz.png"
-          alt="Add Quiz"
-          class="add-quiz-btn"
-          @click="openCreateQuestionModal"
+          src="/assets/add_question.png"
+          alt="Add Question"
+          class="add-question-btn"
+          @click="showCreateQuestionModal = true"
+        />
+        <img
+          src="/assets/edit_order.png"
+          alt="Add Question"
+          class="add-question-btn"
+          @click="showEditOrderModal = true"
         />
       </div>
       <div class="questions-container">
@@ -37,24 +26,26 @@
             <div class="question-left">
               <span class="question-number">{{ question.order }}</span>
               <span class="question-font">{{ question.description }}</span>
+              
             </div>
             <div class="question-right">
               <span class="question-time"
                 >{{ question.duration }} seconde(s)</span
               >
               <span class="question-score">{{ question.score }} point(s)</span>
+              <span class="question-font">{{ (question.type === "simpleChoice") ? "QCU" : (question.type === "multipleChoice" ? "QCM" : (question.type === "order") ? "Ordre" : "Texte") }}</span>
               <div class="question-actions">
                 <img
                   src="/assets/edit.png"
                   alt="Modify Quiz"
                   class="button-quiz-image"
-                  @click="openEditQuestionModal"
+                  @click="openEditQuestionModal(question)"
                 />
                 <img
                   src="/assets/delete.png"
                   alt="Remove Quiz"
                   class="button-quiz-image"
-                  @click="openDeleteQuestionModal"
+                  @click="openDeleteQuestionModal(question)"
                 />
               </div>
             </div>
@@ -64,9 +55,9 @@
               <h3>Réponses</h3>
               <img
                 src="/assets/add_answer.png"
-                alt="Add Quiz"
-                class="add-quiz-btn"
-                @click=""
+                alt="Add Answer"
+                class="add-answer-btn"
+                @click="showCreateAnswerModal = true"
               />
             </div>
             <div class="answers-container">
@@ -89,13 +80,13 @@
                   src="/assets/edit.png"
                   alt="Modify Quiz"
                   class="edit-answer-image"
-                  @click="openEditQuestionModal"
+                  @click="showEditAnswerModal = true"
                 />
                 <img
                   src="/assets/delete.png"
                   alt="Remove Quiz"
                   class="delete-answer-image"
-                  @click="openDeleteQuestionModal"
+                  @click="showDeleteAnswerModal = true"
                 />
               </div>
             </div>
@@ -106,28 +97,44 @@
         </div>
       </div>
     </div>
+
+    <Draggable v-model="items" item-key="id">
+      <template #item="{ element }">
+        <div style="padding: 8px; margin: 4px; border: 1px solid #ccc; background-color: grey;">
+          {{ element.name }}
+        </div>
+      </template>
+    </Draggable>
+
   </main>
 
   <CreateQuestion
-    :show="showCreateQuestion"
+    :show="showCreateQuestionModal"
     :quizId="Number(quizId)"
-    @close="showCreateQuestion = false"
-    :data="{questionNumber: selectedOrder}"
-    @refresh="loadQuizQuestions"
+    @close="showCreateQuestionModal = false"
+    :data="{questionNumber: questionsList.length + 1}"
+    @refresh="loadQuestions"
   />
 
-  <CreateQuestion
-    :show="showEditQuestion"
-    :quizId="Number(quizId)"
-    @close="showEditQuestion = false"
-    @refresh="loadQuizQuestions"
+  <ModifyQuestion
+    v-if="(showEditQuestionModal && selectedQuestion)"
+    :data="{ question: selectedQuestion }"
+    @close="showEditQuestionModal = false"
+    @refresh="loadQuestions"
   />
 
-  <CreateQuestion
-    :show="showDeleteQuestion"
-    :quizId="Number(quizId)"
-    @close="showDeleteQuestion = false"
-    @refresh="loadQuizQuestions"
+  <DeleteQuestion
+    v-if="showDeleteQuestionModal"
+    :data="{currentQuestion: selectedQuestion, quizId: quizId }"
+    @close="showDeleteQuestionModal = false"
+    @refresh="loadQuestions"
+  />
+
+  <EditOrder
+    v-if="showEditOrderModal"
+    :data="{questions: questionsList, quizId: quizId }"
+    @close="showEditOrderModal = false"
+    @refresh="loadQuestions"
   />
 </template>
 
@@ -136,70 +143,48 @@ import { useRouter, useRoute } from "vue-router";
 import { ref, computed, onMounted } from "vue";
 import axios from "@/axios";
 import CreateQuestion from "@/components/CreateQuestion.vue";
+import DeleteQuestion from "../../components/DeleteQuestion.vue";
+import ModifyQuestion from "../../components/ModifyQuestion.vue";
+import Draggable from "vuedraggable";
+import EditOrder from "../../components/EditOrder.vue";
 
 const route = useRoute();
-const router = useRouter();
 const quizId = computed(() => route.params.id);
 const questionsList = ref([]);
-const quizName = ref("");
-const newQuestion = ref({
-  description: "",
-  type: "simpleChoice",
-  duration: 0,
-  score: 0,
-});
-const selectedOrder = ref("");
-const selectedQuestionId = ref("");
-const categories = ref([]);
 
-const currentQuiz = ref({
-  idQuiz: null,
-  idCategory: null,
-  name: "",
-});
+const showEditOrderModal = ref(false);
 
-const showCreateQuestion = ref(false);
-const showEditQuestion = ref(false);
-const showDeleteQuestion = ref(false);
+const showCreateQuestionModal = ref(false);
+const showEditQuestionModal = ref(false);
+const showDeleteQuestionModal = ref(false);
+
+const showCreateAnswerModal = ref(false);
+const showEditAnswerModal = ref(false);
+const showDeleteAnswerModal = ref(false);
+
+const selectedQuestion = ref(null);
 
 onMounted(() => {
-  loadCategories();
-  loadQuiz();
   loadQuestions();
 });
 
-const openCreateQuestionModal = () => {
-  selectedOrder.value = questionsList.value.length + 1;
-  console.log(selectedOrder.value);
+const openEditQuestionModal = (question) => {
+  selectedQuestion.value = question;
+  showEditQuestionModal.value = true;
+}
+
+const openDeleteQuestionModal = (question) => {
   
-  showCreateQuestion.value = true;
-  newQuestion.value = {
-    description: "",
-    type: "simpleChoice",
-    duration: 0,
-    score: 0,
-  };
-};
+  
+  selectedQuestion.value = question;
+  showDeleteQuestionModal.value = true;
+  console.log(showDeleteQuestionModal.value);
+}
 
-const openEditQuestionModal = () => {
-  showEditQuestion.value = true;
-  selectedQuestionId.value = "";
-};
-
-const openDeleteQuestionModal = () => {
-  showDeleteQuestion.value = true;
-  selectedQuestionId.value = "";
-  newQuestion.value = "";
-  selectedType.value = "";
-  selectedScore.value = "";
-  selectedDuration.value = "";
-  selectedOrder.value = "";
-};
 
 const loadQuestions = async () => {
   try {
-    const response = await axios.get(`/quiz-question/${quizId.value}`);
-    
+    const response = await axios.get(`/quiz-question/${quizId.value}/questions`);
     
     const questionL = [];
 
@@ -238,49 +223,15 @@ const loadQuestions = async () => {
       }
       questionL.push(currentQuestion);
     }
-    questionsList.value = questionL;
-    console.log("questionsList", questionsList.value);
-    
+    questionsList.value = questionL.sort((a, b) => a.order - b.order);;
   } catch (err) {
     console.error("Erreur inattendue :", err);
   }
 };
 
-const loadQuiz = async () => {
-  try {
-    const response = await axios.get(`/quiz/${quizId.value}`);
-    currentQuiz.value = response.data;
-    quizName.value = currentQuiz.value.name;
-  } catch (err) {
-    console.error("Erreur lors de la récupération du quiz");
-  }
-};
-
-const loadCategories = async () => {
-  try {
-    const response = await axios.get("/categories/all");
-    const data = response.data;
-    categories.value = data;
-  } catch (error) {
-    console.error("Erreur lors de la récupération des catégories :", error);
-  }
-};
-
-const goToQuestion = (idQuestion) => {
-  router.push(`/question/${idQuestion}`);
-};
-
-const getCategoryName = (idCategory) => {
-  for (let i = 0; i < categories.value.length; i++) {
-    if (categories.value[i].idCategory === idCategory) {
-      return categories.value[i].name;
-    }
-  }
-  return "inconnue";
-};
 </script>
 
-<style>
+<style lang="scss">
 .main-content {
   padding: 7rem 0 3rem 0;
   display: flex;
@@ -298,55 +249,26 @@ h1 {
   font-family: "Nerko One", cursive;
 }
 
-.infos-quiz {
-  display: flex;
-  gap: 1rem;
-  margin: 0 auto;
-}
-
-label {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-.input {
-  width: 100%;
-  padding: 0.75rem;
-  font-size: 1rem;
-  border: 0.1rem solid #ccc;
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-  color: #000000;
-  outline: none;
-  font-family: "Gabarito";
-
-  &:hover,
-  &:active,
-  &:focus {
-    border-color: #c46fc8;
-  }
-}
-
 .questions-wrapper {
   position: relative;
-  width: 50vw;
+  width: 55vw;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
 .questions-header {
   display: flex;
-  justify-content: space-between;
-  padding: 0 1rem;
+  justify-content: center;
+  gap: 1rem;
   align-items: center;
-  margin-bottom: 20px;
 
   & h2 {
     font-size: 2rem;
   }
 
-  & .add-quiz-btn {
-    width: 3rem;
-    aspect-ratio: 1/1;
+  & .add-question-btn {
+    height: 3rem;
     cursor: pointer;
     margin: 1%;
     transition: transform 0.2s ease;
@@ -369,13 +291,13 @@ label {
   background: #f9f9fb;
   padding: 1.25rem 1.5rem;
   border-radius: 10px;
-  /* box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05); */
-
   text-align: left;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 3rem;
+  gap: 2rem;
+
+  
 }
 
 .question-left {
@@ -404,6 +326,7 @@ label {
   }
 }
 
+
 .question-right {
   display: flex;
   align-items: center;
@@ -418,9 +341,8 @@ label {
     font-weight: bold;
     color: #28a745;
   }
-}
 
-.question-actions {
+  & .question-actions {
   display: flex;
   gap: 0.5rem;
   margin-left: 1rem;
@@ -435,6 +357,9 @@ label {
     }
   }
 }
+}
+
+
 
 .remove-quiz-image {
   width: auto;
@@ -453,7 +378,6 @@ label {
 .question-wrap {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
 }
 .question-content {
   padding: 1rem;
@@ -468,9 +392,8 @@ label {
     font-size: 2rem;
   }
 
-  & .add-quiz-btn {
-    width: 2rem;
-    aspect-ratio: 1/1;
+  & .add-answer-btn {
+    height: 2.5rem;
     cursor: pointer;
     margin: 1%;
     transition: transform 0.2s ease;
@@ -485,15 +408,15 @@ label {
 
 .answers-container {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
   flex-direction: column;
   gap: 1.5rem;
+  width: 100%;
 }
 .answer-card {
   background: #fef5ff;
   padding: 1.25rem 1.5rem;
   border-radius: 10px;
-
+  width: 100%;
   text-align: left;
   display: flex;
   align-items: center;

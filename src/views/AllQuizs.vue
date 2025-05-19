@@ -2,7 +2,7 @@
   <div>
     <main class="main-content">
       <div class="title-container">
-        <h1>Tout les QWIZS</h1>
+        <h1>Tous les QWIZS</h1>
         <div class="categories">
             <select class="type-select" default="Catégorie" v-model="selectedCategory">
               <option value="Catégorie">Trier par catégorie</option>

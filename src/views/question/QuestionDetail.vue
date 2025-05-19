@@ -5,19 +5,19 @@
     <div class="question-wrapper">
       <div class="quiz-header">
         <img
-          src="/assets/add_quiz.png"
+          src="/assets/add_qwiz.png"
           alt="Add Answer"
           class="button-quiz-image"
           @click="openModal"
         />
         <img
-          src="/assets/modify.png"
+          src="/assets/edit.png"
           alt="Modify Answer"
           class="button-quiz-image"
           @click="openModal3"
         />
         <img
-          src="/assets/rm_quiz.png"
+          src="/assets/delete.png"
           alt="Remove Answer"
           class="button-quiz-image"
           @click="openModal2"

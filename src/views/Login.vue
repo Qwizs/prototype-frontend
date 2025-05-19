@@ -55,6 +55,7 @@ const onSubmit = async () => {
     
     localStorage.setItem("idAdmin", response.data.idAdministrator);
     localStorage.setItem("username", response.data.username);
+    window.dispatchEvent(new Event("storage")); 
     router.push("/");
 
   } catch (error) {

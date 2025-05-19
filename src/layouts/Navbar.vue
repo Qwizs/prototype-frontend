@@ -7,11 +7,11 @@
         </router-link>
 
         <ul class="nav-links">
-          <li><router-link to="/quizs" class="nav-link" active-class="active">Catalogue</router-link></li>
-          <li><router-link to="/join" class="nav-link" active-class="active">Rejoindre</router-link></li>
+          <li><router-link to="/quizs" class="nav-link" active-class="active">Les Qwizs</router-link></li>
+          <li><router-link to="/join" class="nav-link" active-class="active">Rejoindre un Qwiz</router-link></li>
           
           <div v-if="username">
-            <li><router-link to="/my-quizs" class="nav-link" active-class="active">Mes qwizs</router-link></li>
+           
           </div>
           
         </ul>
@@ -27,6 +27,7 @@
 
           <div class="user-menu" v-show="isMenuVisible" ref="menuRef">
 
+            <router-link to="/my-quizs" class="menu-item">Mes qwizs</router-link>
             <router-link to="/profile" class="menu-item">Modifier le profil</router-link>
             <router-link to="/profile" class="menu-item" @click="logout">Se déconnecter</router-link>
             
@@ -49,7 +50,15 @@ const isMenuVisible = ref(false);
 const router = useRouter()
 
 
-const username = ref(localStorage.getItem('username') || "");
+const username = ref("");
+onMounted(() => {
+  document.addEventListener('click', handleClickOutside)
+
+  username.value = localStorage.getItem('username') || "";
+  window.addEventListener("storage", () => {
+    username.value = localStorage.getItem('username') || "";
+  });
+});
 
 const menuRef = ref(null)
 const userInfoRef = ref(null)
@@ -65,7 +74,7 @@ const toggleMenu = () => {
 const logout = () => {
   localStorage.removeItem('username')
   localStorage.removeItem('idAdmin')
-  username.value = 'Utilisateur inconnu'
+  username.value = "";
   router.push('/connexion')
 };
 
@@ -83,9 +92,6 @@ const handleClickOutside = (event) => {
   }
 }
 
-onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-})
 
 onBeforeUnmount(() => {
   document.removeEventListener('click', handleClickOutside)

@@ -94,6 +94,7 @@ watch(
   () => props.data.questionNumber,
   (newVal) => {
     selectedOrder.value = newVal ?? "";
+    
   },
   { immediate: true }
 );
@@ -147,6 +148,10 @@ const submitForm = async () => {
   & .new-question-text {
     grid-column: 2 / span 2;
   }
+}
+
+.new-question-modal{
+  width: 40vw;
 }
 
 
