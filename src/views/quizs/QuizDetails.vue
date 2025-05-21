@@ -1,6 +1,6 @@
 <template>
   <main class="main-content">
-    <h1>Modifier mon Qwiz</h1>
+    <h1>Modifier mon Qwiz : {{ quizName }}</h1>
     <div class="questions-wrapper">
       <div class="questions-header">
         <img
@@ -151,8 +151,10 @@ import EditOrder from "../../components/EditOrder.vue";
 const route = useRoute();
 const quizId = computed(() => route.params.id);
 const questionsList = ref([]);
+const quizName = ref("");
 
 const showEditOrderModal = ref(false);
+
 
 const showCreateQuestionModal = ref(false);
 const showEditQuestionModal = ref(false);
@@ -166,6 +168,7 @@ const selectedQuestion = ref(null);
 
 onMounted(() => {
   loadQuestions();
+  loadQuizName();
 });
 
 const openEditQuestionModal = (question) => {
@@ -174,12 +177,20 @@ const openEditQuestionModal = (question) => {
 }
 
 const openDeleteQuestionModal = (question) => {
-  
-  
   selectedQuestion.value = question;
   showDeleteQuestionModal.value = true;
   console.log(showDeleteQuestionModal.value);
 }
+
+const loadQuizName = async () => {
+  try {
+    const response = await axios.get(`/quiz/${quizId.value}`);
+    quizName.value = response.data.name;
+
+  } catch (err) {
+    console.error("Erreur inattendue :", err);
+  }
+};
 
 
 const loadQuestions = async () => {
@@ -187,6 +198,7 @@ const loadQuestions = async () => {
     const response = await axios.get(`/quiz-question/${quizId.value}/questions`);
     
     const questionL = [];
+    const answerL = [];
 
     for (const link of response.data) {
       let currentQuestion = null;
@@ -201,7 +213,7 @@ const loadQuestions = async () => {
           `/answer-question/${link.idQuestion}`
         );
 
-        const answerL = [];
+        
 
         for (const link of response2.data) {
           const response = await axios.get(
@@ -223,7 +235,7 @@ const loadQuestions = async () => {
       }
       questionL.push(currentQuestion);
     }
-    questionsList.value = questionL.sort((a, b) => a.order - b.order);;
+    questionsList.value = questionL.sort((a, b) => a.order - b.order);
   } catch (err) {
     console.error("Erreur inattendue :", err);
   }
