@@ -53,9 +53,26 @@ const newQwiz = ref({
 });
 const errorMessage = ref("");
 
+import { onMounted } from "vue";
+
 const { data } = toRefs(props);
-const quizsName = ref(data.value.quizs);
-const categories = ref(data.value.categories);
+const quizsName = ref([]);
+const categories = ref([]);
+
+onMounted(async () => {
+  quizsName.value = data.value?.quizs || [];
+
+  if (!data.value?.categories || data.value.categories.length === 0) {
+    try {
+      const response = await axios.get("/categories/all");
+      categories.value = response.data;
+    } catch (err) {
+      console.error("Erreur lors du chargement des catégories :", err);
+    }
+  } else {
+    categories.value = data.value.categories;
+  }
+});
 
 const submitForm = async () => {
   if (newQwiz.value.name === "" || newQwiz.value.idCategory === "") {

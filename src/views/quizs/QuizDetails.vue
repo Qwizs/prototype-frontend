@@ -1,6 +1,6 @@
 <template>
   <main class="main-content">
-    <h1>Modifier mon Qwiz</h1>
+    <h1>Modifier mon Qwiz : {{ quizName }}</h1>
     <div class="questions-wrapper">
       <div class="questions-header">
         <img
@@ -176,10 +176,12 @@ import ModifyAnswer from "../../components/ModifyAnswer.vue";
 const route = useRoute();
 const quizId = computed(() => route.params.id);
 const questionsList = ref([]);
+const quizName = ref("");
 
 const items = ref([]);
 
 const showEditOrderModal = ref(false);
+
 
 const showCreateQuestionModal = ref(false);
 const showEditQuestionModal = ref(false);
@@ -194,6 +196,7 @@ const selectedAnswer = ref(null);
 
 onMounted(() => {
   loadQuestions();
+  loadQuizName();
 });
 
 const openEditQuestionModal = (question) => {
@@ -223,12 +226,22 @@ const openDeleteAnswerModal = (answer, question) => {
   showDeleteAnswerModal.value = true;
 }
 
+const loadQuizName = async () => {
+  try {
+    const response = await axios.get(`/quiz/${quizId.value}`);
+    quizName.value = response.data.name;
+
+  } catch (err) {
+    console.error("Erreur inattendue :", err);
+  }
+};
 
 
 const loadQuestions = async () => {
   try {
     const response = await axios.get(`/quiz-question/${quizId.value}/questions`);
     const questionL = [];
+    const answerL = [];
 
     for (const link of response.data) {
       let currentQuestion = null;
@@ -245,7 +258,7 @@ const loadQuestions = async () => {
           `/answer-question/${link.idQuestion}`
         );
 
-        const answerL = [];
+        
 
         for (const link of response2.data) {
           const response = await axios.get(
