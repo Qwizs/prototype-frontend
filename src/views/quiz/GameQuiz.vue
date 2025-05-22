@@ -1,7 +1,13 @@
 <script setup lang="ts">
-import { useRoute, useRouter } from 'vue-router';
-import { io } from 'socket.io-client';
-import { ref, onMounted, onBeforeUnmount, computed } from 'vue';
+import { useRoute, useRouter } from "vue-router";
+import { io } from "socket.io-client";
+import { ref, onMounted, onBeforeUnmount, computed } from "vue";
+import Draggable from "vuedraggable";
+
+interface OrderAnswer {
+  id: number;
+  label: string;
+}
 
 const route = useRoute();
 const router = useRouter();
@@ -9,88 +15,216 @@ const router = useRouter();
 const room = computed(() => route.params.room as string);
 const user = computed(() => route.query.user as string | undefined);
 
-const maxPoints = 1000;
-const maxDelay = 10000;
+
 
 let startTime: number;
 let answerTime: number | null = null;
 
-const question = ref<{ question: string; options: string[]; correctOption: string } | null>(null);
-const selectedOption = ref<string | null>(null);
+const currentQuestion = ref<{
+  infos: { description: string; type: string; duration: number };
+  options: any[];
+  correctOption: string[];
+} | null>(null);
+const selectedQCUAnswer = ref<string | null>(null);
+const selectedQCMAnswers = ref<string[]>([]);
+const inputAnswer = ref<string | null>(null);
+const orderAnswers = ref<OrderAnswer[]>(
+  currentQuestion.value?.options.map((option, index) => ({
+    id: index,
+    label: option.value,
+  })) || []
+);
+
 const score = ref(0);
-const currentQuestionScore = ref<number | null>(null); 
+const maxPoints = 1000;
+const maxDelay = 10000;
+
+const currentQuestionScore = ref<number | null>(null);
 const perQuestionScores = ref<number[]>([]);
 
 const allUsersResponded = ref(false);
 const finalScores = ref<{ [user: string]: number }>({});
 const answerRevealed = ref(false);
-const correctOption = ref<string[] | null>(null);
+const answerIsSend = ref(false);
 const questionIndex = ref(0);
 const progress = ref(100);
 
 let progressInterval: ReturnType<typeof setInterval> | null = null;
 
 const resetProgress = () => {
+  if (!currentQuestion.value || !currentQuestion.value.infos?.duration) {
+    console.warn("Durée de la question non définie");
+    return;
+  }
+
   progress.value = 100;
+
   if (progressInterval) clearInterval(progressInterval);
+
+  const durationMs = currentQuestion.value.infos.duration * 1000;
+  const stepTime = 100; 
+  const stepsCount = durationMs / stepTime;
+  const decrement = 100 / stepsCount;
+
   progressInterval = setInterval(() => {
     if (progress.value > 0) {
-      progress.value -= 1;
+      progress.value -= decrement;
+      if (progress.value < 0) progress.value = 0;
     } else {
-      clearInterval(progressInterval!);
-      progressInterval = null;
+      if (progressInterval !== null) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+      }
 
-      socket.emit('submitAnswer', {
-        user: user.value,
-        room: room.value,
-        answer: selectedOption.value ?? null,
-      });
+      if (currentQuestionScore.value === null){
+      switch (currentQuestion.value?.infos.type) {
+            case "simpleChoice":
+              selectedQCUAnswer.value = "";
+              break;
+            case "multipleChoice":
+              selectedQCMAnswers.value = [];
+              break;
+            case "input":
+              inputAnswer.value = "";
+              break;
+            case "order":
+              orderAnswers.value = [];
+              break;
+          
+            default:
+              break;
+          }
+          answerIsSend.value = true;
+          currentQuestionScore.value = 0;
+          socket.emit("submitAnswer", {
+            user: user.value,
+            room: room.value,
+            score: currentQuestionScore.value,
+          });
+      }
+    
     }
-  }, 100);
+  }, stepTime);
 };
 
-const socket = io('http://localhost:4500', {
-  transports: ['websocket', 'polling'],
+const socket = io("http://localhost:4500", {
+  transports: ["websocket", "polling"],
 });
 
 const selectOption = (option: string) => {
-  const delay = Date.now() - startTime;
-  const clampedDelay = Math.min(delay, maxDelay);
-  const speedRatio = 1 - clampedDelay / maxDelay;
-  const earnedScore = Math.floor(maxPoints * speedRatio);
+  switch (currentQuestion.value?.infos.type) {
+    case "simpleChoice":
+      selectedQCUAnswer.value = option;
+      submitAnswer();
+      break;
 
-  if (!selectedOption.value && !answerRevealed.value) {
-    selectedOption.value = option;
-    socket.emit('submitAnswer', {
-      user: user.value,
-      room: room.value,
-      answer: option,
-      score: earnedScore,
-    });
+    case "multipleChoice":
+      selectedQCMAnswers.value?.push(option);
+      break;
+
+    default:
+      break;
   }
+};
+
+const submitAnswer = () => {
+  let earnedScore = 0;
+  answerIsSend.value = true;
+  switch (currentQuestion.value?.infos.type) {
+    case "simpleChoice":
+      if (
+        selectedQCUAnswer.value &&
+        currentQuestion.value.correctOption.includes(
+          selectedQCUAnswer.value.trim().toLowerCase()
+        )
+      ) {
+        const delay = (answerTime ?? Date.now()) - startTime;
+        const clampedDelay = Math.min(delay, maxDelay);
+        const speedRatio = 1 - clampedDelay / maxDelay;
+        earnedScore = Math.floor(maxPoints * speedRatio);
+        score.value += earnedScore;
+      }
+      break;
+    case "multipleChoice":
+      if (
+        compareAnswers(
+          selectedQCMAnswers.value,
+          currentQuestion.value.correctOption
+        )
+      ) {
+        const delay = (answerTime ?? Date.now()) - startTime;
+        const clampedDelay = Math.min(delay, maxDelay);
+        const speedRatio = 1 - clampedDelay / maxDelay;
+        earnedScore = Math.floor(maxPoints * speedRatio);
+        score.value += earnedScore;
+      }
+      break;
+    case "input":
+      const correctAnswer = currentQuestion.value.correctOption.map((option) => option.trim().toLowerCase());
+      
+      if (
+        inputAnswer.value &&
+        correctAnswer.includes(
+          inputAnswer.value.trim().toLowerCase()
+        )
+      ) {
+        const delay = (answerTime ?? Date.now()) - startTime;
+        const clampedDelay = Math.min(delay, maxDelay);
+        const speedRatio = 1 - clampedDelay / maxDelay;
+        earnedScore = Math.floor(maxPoints * speedRatio);
+        score.value += earnedScore;
+        
+      }
+      break;
+    case "order":
+      if(areAnswersInSameOrder(orderAnswers.value, currentQuestion.value.correctOption)){
+        const delay = (answerTime ?? Date.now()) - startTime;
+        const clampedDelay = Math.min(delay, maxDelay);
+        const speedRatio = 1 - clampedDelay / maxDelay;
+        earnedScore = Math.floor(maxPoints * speedRatio);
+        score.value += earnedScore;
+      }
+      break;
+    default:
+      break;
+  }
+
+  currentQuestionScore.value = earnedScore;
+  console.log(currentQuestionScore.value);
+  
+  socket.emit("submitAnswer", {
+  user: user.value,
+  room: room.value,
+  score: currentQuestionScore.value,
+  });
 };
 
 onMounted(() => {
   socket.connect();
 
   if (room.value) {
-    socket.emit('joinQuizRoom', { user: user.value, room: room.value });
+    socket.emit("joinQuizRoom", { user: user.value, room: room.value });
   }
 
-  socket.on('newQuestion', (data) => {
-    question.value = data;
+  socket.on("newQuestion", (data) => {
+    currentQuestion.value = data;
     startTime = Date.now();
     answerTime = null;
-    selectedOption.value = null;
+    selectedQCUAnswer.value = null;
+    selectedQCMAnswers.value = [];
+    inputAnswer.value = null;
+    orderAnswers.value = currentQuestion.value?.options.map((option, index) => ({
+    id: index,
+    label: option.value,
+  })) || [];
     allUsersResponded.value = false;
     answerRevealed.value = false;
-    correctOption.value = null;
     currentQuestionScore.value = null;
     questionIndex.value += 1;
     resetProgress();
   });
 
-  socket.on('allUsersResponded', () => {
+  socket.on("allUsersResponded", () => {
     allUsersResponded.value = true;
     if (progressInterval) {
       clearInterval(progressInterval);
@@ -98,31 +232,13 @@ onMounted(() => {
     }
   });
 
-  socket.on('revealAnswer', (data) => {
+  socket.on("revealAnswer", (data) => {
     answerRevealed.value = true;
-    correctOption.value = data.correctOption;
-    let earnedScore = 0;
-
-    console.log(data.correctOption.includes(selectedOption.value.trim().toLowerCase()));
-    
-    if (
-      selectedOption.value && data.correctOption.includes(selectedOption.value.trim().toLowerCase())
-    ) {
-      const delay = (answerTime ?? Date.now()) - startTime;
-      const clampedDelay = Math.min(delay, maxDelay);
-      const speedRatio = 1 - clampedDelay / maxDelay;
-      earnedScore = Math.floor(maxPoints * speedRatio);
-      score.value += earnedScore;
-    }
-
-    perQuestionScores.value.push(earnedScore);
-    currentQuestionScore.value = earnedScore; 
+    perQuestionScores.value.push(currentQuestionScore.value!);
   });
 
-  socket.on('quizEnded', (scores) => {
+  socket.on("quizEnded", (scores) => {
     finalScores.value = scores;
-    console.log(scores);
-    
     router.push({
       path: `/quiz/${room.value}/result`,
       query: {
@@ -134,67 +250,195 @@ onMounted(() => {
     });
   });
 
-  socket.on('exception', (data) => {
-    console.error('Erreur:', data);
+  socket.on("exception", (data) => {
+    console.error("Erreur:", data);
   });
 
-  socket.on('disconnect', () => {
-    console.log('Déconnecté');
+  socket.on("disconnect", () => {
+    console.log("Déconnecté");
   });
 });
+
+const compareAnswers = (selected: string[], correct: string[]): boolean => {
+  const selectedSet = new Set(selected.map((s) => s.trim().toLowerCase()));
+  const correctSet = new Set(correct.map((c) => c.trim().toLowerCase()));
+
+  return (
+    selectedSet.size === correctSet.size &&
+    [...selectedSet].every((val) => correctSet.has(val))
+  );
+};
+
+const areAnswersInSameOrder = (answersObjArray, answersIdArray, idKey = 'id') => {
+  if (answersObjArray.length !== answersIdArray.length) return false;
+  for (let i = 0; i < answersObjArray.length; i++) {
+    if (answersObjArray[i].label != answersIdArray[i]) {
+      return false;
+    }
+  }
+  return true;
+}
 
 onBeforeUnmount(() => {
   socket.disconnect();
   if (progressInterval) clearInterval(progressInterval);
 });
 
-
+const handleInputAnswer = () => {};
 </script>
 
 <template>
   <main class="game-wrap">
-
-  
-  <UContainer class="flex flex-col justify-start p-4 gap-4 bg-white text-black">
-    <transition name="fade-slide" mode="out-in">
-      <div v-if="question" :key="questionIndex" class="question-card">
-        <div class="progress-bar-wrapper" v-if="!allUsersResponded">
-          <div class="progress-bar" :style="{ width: progress + '%' }"></div>
-        </div>
-
-        <h3 class="question-text">{{ question.question }}</h3>
-
-        <div class="options-list">
-          <div
-            v-for="option in question.options"
-            :key="option"
-            @click="!selectedOption && !answerRevealed && selectOption(option)"
-            :class="[
-              'option-button',
-              { 'selected': selectedOption === option },
-              { 'correct': answerRevealed && correctOption?.includes(option) },
-              { 'incorrect': answerRevealed && selectedOption === option && !correctOption?.includes(option) },
-              { 'disabled-option': selectedOption && selectedOption !== option && !answerRevealed }
-            ]"
-          >
-            {{ option }}
+    <UContainer
+      class="flex flex-col justify-start p-4 gap-4 bg-white text-black"
+    >
+      <transition name="fade-slide" mode="out-in">
+        <div v-if="currentQuestion" :key="questionIndex" class="question-card">
+          <div class="progress-bar-wrapper" v-if="!allUsersResponded">
+            <div class="progress-bar" :style="{ width: progress + '%' }"></div>
           </div>
+
+          <h3 class="question-text">{{ currentQuestion.infos.description }}</h3>
+
+          <div class="input-list" v-if="currentQuestion.infos.type === 'input'">
+            <input
+              v-model="inputAnswer"
+              v-if="!answerRevealed"
+              type="text"
+              placeholder="Votre réponse"
+              class="input answer-input"
+           />
+
+            <input
+              v-model="currentQuestion.correctOption[0]"
+              v-if="answerRevealed"
+              type="text"
+              class="input answer-input"
+              :class="[{correct: inputAnswer && currentQuestion.correctOption[0].trim().toLowerCase() === inputAnswer!.trim().toLowerCase()},{incorrect: !inputAnswer || currentQuestion.correctOption[0].trim().toLowerCase() !== inputAnswer!.trim().toLowerCase()}]"
+            />
+            <button
+              @click="!answerRevealed && submitAnswer()"
+              class="btn-primary"
+              v-if="!answerIsSend"
+            >
+              Valider
+            </button>
+          </div>
+
+          <div
+            class="options-list"
+            v-if="
+              currentQuestion.infos.type === 'simpleChoice' ||
+              currentQuestion.infos.type === 'multipleChoice'
+            "
+          >
+            <div
+              v-for="option in currentQuestion.options"
+              :key="option"
+              @click="
+                !selectedQCUAnswer &&
+                  !answerRevealed &&
+                  selectOption(option.value)
+              "
+              :class="[
+                'option-button',
+                {
+                  selected:
+                    (currentQuestion.infos.type === 'simpleChoice' &&
+                      selectedQCUAnswer === option.value) ||
+                    (currentQuestion.infos.type === 'multipleChoice' &&
+                      selectedQCMAnswers?.includes(option.value)),
+                },
+                {
+                  correct:
+                    answerRevealed &&
+                    currentQuestion.correctOption?.includes(option.value),
+                },
+                {
+                  incorrect:
+                    answerRevealed &&
+                    ((currentQuestion.infos.type === 'simpleChoice' &&
+                      selectedQCUAnswer === option.value &&
+                      !currentQuestion.correctOption.includes(option.value)) ||
+                      (currentQuestion.infos.type === 'multipleChoice' &&
+                        selectedQCMAnswers?.includes(option.value) &&
+                        !currentQuestion.correctOption.includes(option.value) &&
+                        !currentQuestion.correctOption?.includes(
+                          option.value
+                        ))),
+                },
+                {
+                  'disabled-option':
+                    currentQuestion.infos.type === 'simpleChoice' &&
+                    selectedQCUAnswer &&
+                    selectedQCUAnswer !== option.value &&
+                    !answerRevealed,
+                },
+              ]"
+            >
+              {{ option.value }}
+            </div>
+            <button
+              @click="!answerRevealed && submitAnswer()"
+              class="btn-primary"
+              v-if="
+                !answerIsSend && currentQuestion.infos.type !== 'simpleChoice'
+              "
+            >
+              Valider
+            </button>
+          </div>
+
+          <div class="order-list" v-if="currentQuestion.infos.type === 'order'">
+            <div class="list-container" :class="{'two-columns': answerRevealed}">
+              <Draggable v-model="orderAnswers" item-key="id" style="display: flex; flex-direction: column; gap: .25rem;">
+                <template #item="{ element, index }">
+                  <div
+                    class="option-button order"
+                    :class="[{ correct: answerRevealed && element.label === currentQuestion.correctOption[index]}, {incorrect: answerRevealed && element.label !== currentQuestion.correctOption[index] }]"
+                    
+                  >
+                    {{ element.label }}
+                  </div>
+                </template>
+              </Draggable>
+              <div v-if="answerRevealed" class="correct-list" style="display: flex; flex-direction: column; gap: .25rem;">
+                <div
+                    class="option-button order"
+                     v-for="option in currentQuestion.correctOption"
+                    :key="option"
+                  >
+                    {{ option }}
+                  </div>
+              </div>
+            </div>
+            
+            <button
+              @click="!answerRevealed && submitAnswer()"
+              class="btn-primary"
+              v-if="!answerIsSend"
+            >
+              Valider
+            </button>
+          </div>
+
+          <p
+            v-if="answerRevealed && currentQuestionScore !== null"
+            class="mt-4 text-sm text-gray-600"
+          >
+            Tu as gagné {{ currentQuestionScore }} point{{
+              currentQuestionScore !== 1 ? "s" : ""
+            }}
+            sur cette question.
+          </p>
         </div>
-
-        <p v-if="answerRevealed && currentQuestionScore !== null" class="mt-4 text-sm text-gray-600">
-          Tu as gagné {{ currentQuestionScore }} point{{ currentQuestionScore !== 1 ? 's' : '' }} sur cette question.
-        </p>
-      </div>
-    </transition>
-  </UContainer>
-
+      </transition>
+    </UContainer>
   </main>
 </template>
 
-
 <style scoped>
-
-.game-wrap{
+.game-wrap {
   padding-top: 8rem;
   display: flex;
   flex-direction: column;
@@ -220,8 +464,41 @@ onBeforeUnmount(() => {
 
 .options-list {
   display: grid;
-  grid-template-columns: repeat(2,1fr);
-  gap: 12px;
+  grid-template-columns: repeat(2, 1fr);
+  justify-content: center;
+
+  
+}
+
+.input-list, .order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  
+}
+
+.list-container {
+  display: grid;
+  grid-template-columns: repeat(1, 10rem);
+  gap: 1rem;
+
+  &.two-columns{
+    grid-template-columns: repeat(2, 10rem);
+  }
+}
+
+.answer-input{
+  &.correct{
+    background-color: #c8f7d2;
+    border-color: #4caf50;
+    color: #2e7d32;
+  }
+
+  &.incorrect{
+    background-color: #f8d2d2;
+    border-color: #f44336;
+    color: #c62828;
+  }
 }
 
 .option-button {
@@ -234,7 +511,7 @@ onBeforeUnmount(() => {
   transition: all 0.2s ease;
 }
 
-.option-button:hover {
+.option-button:hover:not(.order) {
   background-color: #f5ecfa;
 }
 

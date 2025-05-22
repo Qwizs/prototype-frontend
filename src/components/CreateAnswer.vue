@@ -1,52 +1,42 @@
 <template>
-  <div v-if="show" class="modal-overlay">
+  <div class="modal-overlay">
     <div class="modal new-question-modal">
-      <h2>Nouvelle question</h2>
+      <h2>Ajouter une réponse</h2>
 
-      <section class="new-question-content">
+      <section class="new-question-content" :class="{order: currentQuestion.type === 'order'}">
 
         <label class="new-question-text">
           Intitulé
           <input
-            v-model="newQuestion.description"
+            v-model="newAnswer.value"
             type="text"
-            placeholder="Quelle est la capitale de la France ?"
+            placeholder="1945"
             class="input"
+            @input="errorMessage =''"
           />
         </label>
 
-        <label>
-          Type
-          <select v-model="newQuestion.type" class="type-select">
-            <option value="simpleChoice">QCU</option>
-            <option value="multipleChoice">QCM</option>
-            <option value="input">Texte</option>
-            <option value="order">Ordre</option>
-          </select>
-        </label>
-
-        <label>
-          Durée
+        <label class="new-question-text" v-if="currentQuestion.type === 'order'">
+          Ordre
           <input
+            v-model="newAnswer.order"
             type="number"
-            class="input"
-            v-model="newQuestion.duration"
             min="1"
             placeholder="1"
+            class="input"
+            @input="errorMessage =''"
           />
         </label>
 
-        <label>
-          Score
-          <input
-            type="number"
-            class="input"
-            v-model="newQuestion.score"
-            min="1"
-            placeholder="1"
-          />
+        <label id="label-checkbox" v-if="currentQuestion.type !== 'order' && currentQuestion.type !== 'input'">
+          <input type="checkbox" name="goodAnswer" id="goodAnswer" v-model="newAnswer.state">
+          Est-ce une bonne réponse ?
         </label>
+
+        
       </section>
+
+      <p class="errorMessage" v-if="errorMessage !== ''">{{ errorMessage }}</p>
 
       <div class="modal-actions">
         <button @click="emit('close')" class="btn-secondary">Annuler</button>
@@ -57,12 +47,10 @@
 </template>
 
 <script setup>
-import { ref, watch,toRefs } from "vue";
+import { ref, toRefs, watch } from "vue";
 import axios from "@/axios";
 
 const props = defineProps({
-  show: Boolean,
-  quizId: Number,
   data: {
       type: Object,
       default: () => ({}),
@@ -70,62 +58,54 @@ const props = defineProps({
 });
 
 const { data } = toRefs(props);
+const currentQuestion = ref(data.value.currentQuestion);
+const errorMessage = ref("");
 
 const emit = defineEmits(["close", "refresh"]);
 
-const newQuestion = ref({
-  description: "",
-  type: "simpleChoice",
-  duration: 0,
-  score: 0,
+const newAnswer = ref({
+  value: "",
+  idQuestion: currentQuestion.value.idQuestion,
+  state: (currentQuestion.value.type === 'order' || currentQuestion.value.type === 'input')? true : false,
+  order: null
 });
 
 const submitForm = async () => {
-  let createdQuestion = null;
+  if (newAnswer.value.value === "") {
+    errorMessage.value = "Veuillez renseigner une réponse";
+    return;
+  }
 
-  try {
-    const response = await axios.post("/questions", newQuestion.value);
-    createdQuestion = response.data;
-  } catch (error) {
-    console.error("Erreur lors de la création de la question :", error);
+  if (currentQuestion.value.type === 'order' && newAnswer.value.order === null) {
+    errorMessage.value = "Veuillez renseigner un ordre";
     return;
   }
 
   try {
-    await axios.post("/quiz-question", {
-      idQuiz: props.quizId,
-      idQuestion: createdQuestion.idQuestion,
-      order: data.value.questionNumber,
-    });
+    const response = await axios.post("/answers", newAnswer.value);
+    emit("refresh");
+    emit("close");
   } catch (error) {
-    console.error("Erreur lors de l'association question-quiz :", error);
+    console.error("Une erreur s'est produite lors de l'enregistrement de la réponse", error);
     return;
   }
-
-  newQuestion.value = {
-    description: "",
-    type: "simpleChoice",
-    duration: 0,
-    score: 0,
-  };
-
-  emit("refresh");
-  emit("close");
+  
 };
 </script>
 
 <style scoped>
 .new-question-content {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem 1rem;
 
   & label {
     align-items: start;
   }
 
-  & .new-question-text {
-    grid-column: 1 / span 3;
+  &.order{
+    grid-template-columns: repeat(2, 1fr);
+
   }
 }
 
@@ -207,6 +187,13 @@ const submitForm = async () => {
   background-size: 1rem;
   transition: all 0.3s ease;
   cursor: pointer;
+}
+
+#label-checkbox {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
 }
 
 </style>

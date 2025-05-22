@@ -52,12 +52,13 @@
           </div>
           <div class="question-content">
             <div class="answers-header">
-              <h3>Réponses</h3>
+              <h3>{{question.answers.length > 1 ? "Réponses" : "Réponse"}}</h3>
               <img
                 src="/assets/add_answer.png"
                 alt="Add Answer"
                 class="add-answer-btn"
-                @click="showCreateAnswerModal = true"
+                @click="openCreateAnswerModal(question)"
+                v-if="!(question.type === 'input' && question.answers.length === 1)"
               />
             </div>
             <div class="answers-container">
@@ -72,7 +73,7 @@
             </div>
             <div class="question-right">
               <span v-if="answer.order" class="question-time"
-                >Bonne réponse ({{ answer.order }})</span
+                >Ordre : {{ answer.order }}</span
               >
               <span v-if="answer.state" class="question-score">Bonne réponse</span>
               <div class="answer-actions">
@@ -80,13 +81,13 @@
                   src="/assets/edit.png"
                   alt="Modify Quiz"
                   class="edit-answer-image"
-                  @click="showEditAnswerModal = true"
+                  @click="openEditAnswerModal(answer, question)"
                 />
                 <img
                   src="/assets/delete.png"
                   alt="Remove Quiz"
                   class="delete-answer-image"
-                  @click="showDeleteAnswerModal = true"
+                  @click="openDeleteAnswerModal(answer, question)"
                 />
               </div>
             </div>
@@ -107,6 +108,13 @@
     </Draggable>
 
   </main>
+
+  <EditOrder
+    v-if="showEditOrderModal"
+    :data="{questions: questionsList, quizId: quizId }"
+    @close="showEditOrderModal = false"
+    @refresh="loadQuestions"
+  />
 
   <CreateQuestion
     :show="showCreateQuestionModal"
@@ -130,10 +138,24 @@
     @refresh="loadQuestions"
   />
 
-  <EditOrder
-    v-if="showEditOrderModal"
-    :data="{questions: questionsList, quizId: quizId }"
-    @close="showEditOrderModal = false"
+  <CreateAnswer
+    v-if="showCreateAnswerModal"
+    :data="{currentQuestion: selectedQuestion }"
+    @close="showCreateAnswerModal = false"
+    @refresh="loadQuestions"
+  />
+
+  <ModifyAnswer
+    v-if="showEditAnswerModal"
+    :data="{currentQuestion: selectedQuestion, currentAnswer: selectedAnswer }"
+    @close="showEditAnswerModal = false"
+    @refresh="loadQuestions"
+  />
+
+  <DeleteAnswer
+    v-if="showDeleteAnswerModal"
+    :currentAnswer="selectedAnswer"
+    @close="showDeleteAnswerModal = false"
     @refresh="loadQuestions"
   />
 </template>
@@ -147,10 +169,15 @@ import DeleteQuestion from "../../components/DeleteQuestion.vue";
 import ModifyQuestion from "../../components/ModifyQuestion.vue";
 import Draggable from "vuedraggable";
 import EditOrder from "../../components/EditOrder.vue";
+import CreateAnswer from "../../components/CreateAnswer.vue";
+import DeleteAnswer from "../../components/DeleteAnswer.vue";
+import ModifyAnswer from "../../components/ModifyAnswer.vue";
 
 const route = useRoute();
 const quizId = computed(() => route.params.id);
 const questionsList = ref([]);
+
+const items = ref([]);
 
 const showEditOrderModal = ref(false);
 
@@ -163,6 +190,7 @@ const showEditAnswerModal = ref(false);
 const showDeleteAnswerModal = ref(false);
 
 const selectedQuestion = ref(null);
+const selectedAnswer = ref(null);
 
 onMounted(() => {
   loadQuestions();
@@ -173,19 +201,33 @@ const openEditQuestionModal = (question) => {
   showEditQuestionModal.value = true;
 }
 
+const openEditAnswerModal = (answer, question) => {
+  selectedAnswer.value = answer;
+  selectedQuestion.value = question;
+  showEditAnswerModal.value = true;
+}
+
 const openDeleteQuestionModal = (question) => {
-  
-  
   selectedQuestion.value = question;
   showDeleteQuestionModal.value = true;
-  console.log(showDeleteQuestionModal.value);
 }
+
+const openCreateAnswerModal = (question) => {
+  selectedQuestion.value = question;
+  showCreateAnswerModal.value = true;
+}
+
+const openDeleteAnswerModal = (answer, question) => {
+  selectedQuestion.value = question;
+  selectedAnswer.value = answer;
+  showDeleteAnswerModal.value = true;
+}
+
 
 
 const loadQuestions = async () => {
   try {
     const response = await axios.get(`/quiz-question/${quizId.value}/questions`);
-    
     const questionL = [];
 
     for (const link of response.data) {
@@ -194,6 +236,8 @@ const loadQuestions = async () => {
         const response = await axios.get(`/questions/${link.idQuestion}`);
         if (response.data) {
           currentQuestion = { ...response.data, order: link.order }
+          console.log(currentQuestion);
+          
         }
 
         // REPONSES
@@ -223,10 +267,13 @@ const loadQuestions = async () => {
       }
       questionL.push(currentQuestion);
     }
-    questionsList.value = questionL.sort((a, b) => a.order - b.order);;
+    questionsList.value = questionL.sort((a, b) => a.order - b.order);
+    
   } catch (err) {
     console.error("Erreur inattendue :", err);
   }
+  
+  
 };
 
 </script>

@@ -1,11 +1,11 @@
 <template>
   <div class="modal-overlay">
     <div class="modal delete-quiz-modal">
-      <h2>Supprimer une question</h2>
+      <h2>Supprimer une réponse</h2>
 
       <section class="new-question-content">
 
-        <p>Confirmez-vous la suppression de la question : <strong>{{ currentQuestion.description }}</strong></p>
+        <p>Confirmez-vous la suppression de la réponse : <strong>{{ currentAnswer.value }}</strong></p>
       </section>
       
       <div class="modal-actions">
@@ -20,35 +20,30 @@
 import { ref, watch, toRefs, onMounted } from "vue";
 import axios from "@/axios";
 
-export interface Question {
+export interface Answer {
+  idAnswer: number;
+  value: string;
   idQuestion: number;
-  description: string;
-  type: string;
-  duration: number;
-  score: number;
 }
 
 const props = defineProps<{
-  data: {
-      currentQuestion: Question;
-  },
-  quizId: number;
+  currentAnswer: Answer;
 }>();
 
 const emit = defineEmits(["close", "refresh"]);
 
-const { data, quizId } = toRefs(props);
-const currentQuestion = ref(data.value.currentQuestion);
+const { currentAnswer } = toRefs(props);
 
 const submitForm = async () => {
-    try {
-      const response2 = await axios.delete(`/questions/${currentQuestion.value.idQuestion}`);
+  try {
+      const response = await axios.delete(`/answers/${currentAnswer.value.idAnswer}`);
       emit("refresh");
       emit("close");
     } catch (error) {
-      console.error("Erreur lors de la création du qwiz :", error);
+      console.error("Erreur lors de la suppression de la question :", error);
       return;
     }
+  
 };
 </script>
 

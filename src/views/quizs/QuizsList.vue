@@ -22,7 +22,7 @@
           <p class="quiz-title">{{ quiz.name }}</p>
           <p class="quiz-category">{{ getCategoryName(quiz.idCategory) }}</p>
           <div class="buttons-container">
-            <img v-if="quiz.questionsCount > 0" src="/assets/play.png" class="start" alt="" @click="launchQuiz(quiz.id)">
+            <img v-if="quiz.questionsCount > 0" src="/assets/play.png" class="start" alt="" @click="launchQuiz(quiz.idQuiz)">
             <img src="/assets/edit.png" class="edit" alt="" @click="openModifyModal(quiz)"/>
             <img src="/assets/delete.png" class="delete" alt="" @click="openDeleteModal(quiz)">          
           </div>

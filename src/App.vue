@@ -45,8 +45,7 @@ import Navbar from './layouts/Navbar.vue';
 .modal h2 {
   font-size: 2rem;
   font-weight: bold; 
-  color: #6C546C; 
-  margin-bottom: 15px; 
+  color: #6C546C;
 }
 
 .modal-actions {
@@ -121,7 +120,6 @@ label {
   font-size: 1rem;
   border: 0.1rem solid #ccc;
   border-radius: 0.5rem;
-  margin-bottom: 1rem;
   color: #000000;
   outline: none;
   font-family: "Gabarito";

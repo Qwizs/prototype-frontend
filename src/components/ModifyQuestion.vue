@@ -4,7 +4,6 @@
       <h2>Modifier question</h2>
 
       <section class="new-question-content">
-
         <label class="new-question-text">
           Intitulé
           <input
@@ -62,14 +61,14 @@ import axios from "@/axios";
 
 const props = defineProps({
   data: {
-      type: Object,
-      default: () => ({}),
+    type: Object,
+    default: () => ({}),
   },
 });
 
 const emit = defineEmits(["close", "refresh"]);
 const { data } = toRefs(props);
-const currentQuestion = ref(data.value.question);
+const currentQuestion = ref({...data.value.question});
 const newQuestion = ref({
   description: currentQuestion.value.description,
   type: currentQuestion.value.type,
@@ -78,19 +77,17 @@ const newQuestion = ref({
 });
 
 const submitForm = async () => {
-  console.log(data.value);
-  
-    // try {
-    //   // const reponse = axios.patch(`/quiz-question/${quizId.value}/${currentQuestion.value.idQuestion}`, {order: selectedOrder.value})
-    //   // console.log(reponse);
-
-    //   const response = axios.patch(`/questions/${currentQuestion.value.idQuestion}`, newQuestion.value)
-    //   emit("refresh");
-    //   emit("close");
-    // } catch (error) {
-    //   console.error("Erreur lors de la modification de la question :", error);
-    //   return;
-    // }
+  try {
+    const response = await axios.patch(
+      `/questions/${currentQuestion.value.idQuestion}`,
+      newQuestion.value
+    );
+    emit("refresh");
+    emit("close");
+  } catch (error) {
+    console.error("Erreur lors de la modification de la question :", error);
+    return;
+  }
 };
 </script>
 
@@ -98,7 +95,7 @@ const submitForm = async () => {
 .new-question-content {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0 1rem;
+  gap: 1rem;
 
   & label {
     align-items: start;
@@ -109,10 +106,12 @@ const submitForm = async () => {
   }
 }
 
-.new-question-modal{
+.new-question-modal {
   width: 30vw;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 }
-
 
 .input-field,
 .select-field {
@@ -185,9 +184,7 @@ const submitForm = async () => {
   transition: all 0.3s ease;
   cursor: pointer;
 }
-
 </style>
-
 
 <!-- <script>
 // const modifyQuestion = async () => {

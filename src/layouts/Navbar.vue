@@ -27,7 +27,7 @@
 
           <div class="user-menu" v-show="isMenuVisible" ref="menuRef">
 
-            <router-link to="/my-quizs" class="menu-item">Mes qwizs</router-link>
+            <router-link to="/my-quizs" class="menu-item">Mes Qwizs</router-link>
             <router-link to="/profile" class="menu-item">Modifier le profil</router-link>
             <router-link to="/profile" class="menu-item" @click="logout">Se déconnecter</router-link>
             
