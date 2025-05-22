@@ -213,17 +213,7 @@ const openEditAnswerModal = (answer, question) => {
 const openDeleteQuestionModal = (question) => {
   selectedQuestion.value = question;
   showDeleteQuestionModal.value = true;
-}
-
-const openCreateAnswerModal = (question) => {
-  selectedQuestion.value = question;
-  showCreateAnswerModal.value = true;
-}
-
-const openDeleteAnswerModal = (answer, question) => {
-  selectedQuestion.value = question;
-  selectedAnswer.value = answer;
-  showDeleteAnswerModal.value = true;
+  console.log(showDeleteQuestionModal.value);
 }
 
 const loadQuizName = async () => {
@@ -241,10 +231,12 @@ const loadQuestions = async () => {
   try {
     const response = await axios.get(`/quiz-question/${quizId.value}/questions`);
     const questionL = [];
-    const answerL = [];
+    
 
     for (const link of response.data) {
       let currentQuestion = null;
+      const answerL = [];
+      
       try {
         const response = await axios.get(`/questions/${link.idQuestion}`);
         if (response.data) {

@@ -20,7 +20,7 @@
               <option :value="category.idCategory" v-for="category in categories"
             :key="category.idCategory">{{ category.name }}</option>
             </select>
-        <p class="error">{{ errorMessage }}</p>
+        <p class="error" v-if="errorMessage !== ''">{{ errorMessage }}</p>
       </section>
       
       <div class="modal-actions">
@@ -100,7 +100,7 @@ const submitForm = async () => {
 <style scoped>
 .new-question-content {
   display: grid;
-  gap: 0 1rem;
+  gap: 1rem;
 
   & label {
     align-items: start;
